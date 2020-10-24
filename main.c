@@ -100,7 +100,7 @@ void freeMemoria(Estacio * estacio){
 
 int main(int argc, char ** argv){
     Config config;
-    Estacio * estacio;
+    Estacio * estacio = NULL;
 
     if(argc != 2){
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
