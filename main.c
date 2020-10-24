@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define MSG_BENVINGUDA "\n\nStarting Danny...\n\n"
+#define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
 typedef struct{
     char * nomEstacio;
@@ -100,6 +102,12 @@ int main(int argc, char ** argv){
     Config config;
     Estacio * estacio;
 
+    if(argc != 2){
+        write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
+    }
+
+    write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
+
     //llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
     
@@ -109,5 +117,4 @@ int main(int argc, char ** argv){
 
     //alliberem tota la memoria dinamica
     freeMemoria(estacio);
-    
 }
