@@ -97,7 +97,7 @@ void readEstacio(Estacio * estacio, char * path){
             estacio[0].humitat = atoi(read_until(fd_estacio, '\n'));
             estacio[0].pressioAtmosferica = atof(read_until(fd_estacio, '\n'));
             estacio[0].precipitacio = atof(read_until(fd_estacio, '\n'));
-
+            
             printf("%s\n", estacio[0].data);
             printf("%s\n", estacio[0].hora);
             printf("%f\n", estacio[0].temperatura);
@@ -113,6 +113,16 @@ void freeMemoria(Estacio * estacio){
     free(estacio);
 }
 
+void removeChar(char *str, char garbage) {
+
+    char *src, *dst;
+    for (src = dst = str; *src != '\0'; src++) {
+        *dst = *src;
+        if (*dst != garbage) dst++;
+    }
+    *dst = '\0';
+}
+
 void readDirectori(DIR * directori){
     struct dirent * entrada;
     int firstTime=1;
@@ -120,6 +130,8 @@ void readDirectori(DIR * directori){
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
     char textFitxers[255];
+    char pathText[255];
+    pathText[0] = '\0';
     
 
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
@@ -148,7 +160,15 @@ void readDirectori(DIR * directori){
             
             //si es un arxiu .txt
             //llegim la informació del fitxer dades
-            readEstacio(estacio, entrada->d_name);
+            if(entrada->d_name[strlen(entrada->d_name)-2] == 't' && entrada->d_name[strlen(entrada->d_name)-3] == 'x' && entrada->d_name[strlen(entrada->d_name)-4] == 't' && entrada->d_name[strlen(entrada->d_name)-5] == '.'){
+                strcat(pathText, config.pathCarpeta);
+                removeChar(pathText, '/');
+                strcat(pathText, "/");
+                strcat(pathText, entrada->d_name);
+                printf("%s\n", pathText);
+                pathText[strlen(pathText) -1]= '\0';
+                readEstacio(estacio, pathText);
+            }
         }
 
     }
@@ -158,8 +178,6 @@ void readDirectori(DIR * directori){
         write(1, nomFitxers, strlen(nomFitxers));
     }
 
-
-    //if(strlen(entrada->d_name)-2 == 't' && strlen(entrada->d_name)-3 == 'x' && strlen(entrada->d_name)-4 == 't' && strlen(entrada->d_name)-5 == '.')
     
     
     free(pathCarpeta);
