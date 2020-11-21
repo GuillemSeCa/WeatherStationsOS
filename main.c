@@ -13,6 +13,7 @@
 #define MSG_BENVINGUDA "\n\nStarting Danny...\n\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
+//Estructura per guardar la configuració
 typedef struct{
     char * nomEstacio;
     char * pathCarpeta;
@@ -23,6 +24,7 @@ typedef struct{
     int portWendy;
 }Config;
 
+//Estructura per guardar les dades d'una estació
 typedef struct{
     char * data;
     char * hora;
@@ -32,15 +34,16 @@ typedef struct{
     float precipitacio;
 }Estacio;
 
+//Variables globals
 Config config;
 DIR * directori;
 Estacio * estacio = NULL;
 
+//Mètode per llegir un fitxer de text utilitzant FD
 char* read_until(int fd, char end) {
     int i = 0, size;
     char c = '\0';
     char* string = (char*)malloc(sizeof(char));
-
     while(1) {
         size = read(fd, &c, sizeof(char));
         
@@ -52,20 +55,18 @@ char* read_until(int fd, char end) {
             break;
         }
     }
-
     string[i - 1] = '\0';
     return string;
 }
 
+//Mètode per llegir el fitxer de configuració
 void readConfigFile(Config * config, char * path){
     int fdConfig;
     
     fdConfig = open(path, O_RDONLY);
-
     if(fdConfig < 0){
         write(1, "Error lectura de fitxer config!\n", 33);
     }else{
-
         config->nomEstacio = read_until(fdConfig, '\n');
         config->pathCarpeta = read_until(fdConfig, '\n');
         config->tempsRevisioFixers = atoi(read_until(fdConfig, '\n'));
@@ -74,18 +75,18 @@ void readConfigFile(Config * config, char * path){
         config->ipWendy = read_until(fdConfig, '\n');
         config->portWendy = atoi(read_until(fdConfig, '\n'));
     }
+
     close(fdConfig);
 }
 
+//Mètode per llegir la informació d'una estació
 void readEstacio(Estacio * estacio, char * path){
     int fd_estacio;
 
     fd_estacio = open(path, O_RDONLY);
-
     if(fd_estacio < 0){
         write(1, "Error lectura de fitxer estacio!\n", 34);
     }else{
-
         estacio = (Estacio*) malloc(sizeof(Estacio));
 
         if(estacio == NULL){
@@ -106,15 +107,17 @@ void readEstacio(Estacio * estacio, char * path){
             printf("%f\n", estacio[0].precipitacio);
         }
     }
+
     close(fd_estacio);
 }
 
+//Mètode per eliminar memòria
 void freeMemoria(Estacio * estacio){
     free(estacio);
 }
 
+//Mètode per eliminar un caràcter
 void removeChar(char *str, char garbage) {
-
     char *src, *dst;
     for (src = dst = str; *src != '\0'; src++) {
         *dst = *src;
@@ -123,6 +126,7 @@ void removeChar(char *str, char garbage) {
     *dst = '\0';
 }
 
+//Mètode per llegir la carpeta
 void readDirectori(DIR * directori){
     struct dirent * entrada;
     int firstTime=1;
@@ -133,7 +137,6 @@ void readDirectori(DIR * directori){
     char pathText[255];
     pathText[0] = '\0';
     
-
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
     strcat(pathCarpeta, ".");
     strcat(pathCarpeta, config.pathCarpeta);
@@ -157,9 +160,7 @@ void readDirectori(DIR * directori){
             strcat(entrada->d_name, "\n");
             strcat(nomFitxers, entrada->d_name);
 
-            
-            //si es un arxiu .txt
-            //llegim la informació del fitxer dades
+            //Si és un arxiu .txt, llegim la informació del fitxer dades
             if(entrada->d_name[strlen(entrada->d_name)-2] == 't' && entrada->d_name[strlen(entrada->d_name)-3] == 'x' && entrada->d_name[strlen(entrada->d_name)-4] == 't' && entrada->d_name[strlen(entrada->d_name)-5] == '.'){
                 strcat(pathText, config.pathCarpeta);
                 removeChar(pathText, '/');
@@ -170,15 +171,13 @@ void readDirectori(DIR * directori){
                 readEstacio(estacio, pathText);
             }
         }
-
     }
+
     if(countFitxer > 0){
         sprintf(textFitxers, "%d files found\n", countFitxer);
         write(1, textFitxers, strlen(textFitxers));
         write(1, nomFitxers, strlen(nomFitxers));
     }
-
-    
     
     free(pathCarpeta);
     nomFitxers = NULL;
@@ -186,35 +185,36 @@ void readDirectori(DIR * directori){
     closedir(directori);
 }
 
+//Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal(){
-    //llegeix els directoris
-    readDirectori(directori);
+    //Llegeix els directoris
+    //readDirectori(directori);
 
     signal(SIGALRM, alarmaSignal);
     alarm(config.tempsRevisioFixers);
 }
 
+//Mètode per escriure missatge informatiu
 void writeTesting(){
     write(1, "Testing...\n", 12);
 }
 
 int main(int argc, char ** argv){   
-
+    //Comprovem que el número d'arguments sigui correcte
     if(argc != 2){
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
+        return -1;
     }
 
+    //Missatge benvinguda
     write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
 
-    //llegim la informació de el fitxer de configuració
+    //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
     write(1, "$", 1);
     write(1, config.nomEstacio, strlen(config.nomEstacio));
     write(1, ":\n", 3);
     writeTesting();
-
-    
-
     
     //directori = opendir(config.pathCarpeta);
 
@@ -223,8 +223,6 @@ int main(int argc, char ** argv){
 
     while(1) pause();
 
-
-    //alliberem tota la memoria dinamica
+    //Alliberem tota la memòria dinàmica
     freeMemoria(estacio);
-    
 }
