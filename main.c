@@ -129,12 +129,12 @@ void removeChar(char *str, char garbage) {
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectori(DIR * directori){
     struct dirent * entrada;
-    int countFitxers=0;
+    int countFitxers = 0, fdText = 0;
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
-    char textFitxers[255];
-    //char pathText[255];
-    //pathText[0] = '\0';
+    char * textTxt = NULL;
+    char textFitxers[255], pathText[255];
+    pathText[0] = '\0';
     
     //Obrim el directori
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
@@ -150,10 +150,22 @@ void readDirectori(DIR * directori){
         countFitxers++;
         //Ens saltem els fitxers '.' i '..' que sempre trobarem
         if(countFitxers > 2) {
-            //printf("File %3d: %s\n",(countFitxers-2),entrada->d_name);
             //Si és un arxiu .txt, llegim la informació del fitxer dades
             if (strstr(entrada->d_name , ".txt")) {
-                printf("\nhola\n");
+                //Reservem memòria
+                textTxt = (char*) malloc(sizeof(char));
+
+                strcat(pathText, config.pathCarpeta);
+                strcat(pathText, "/");
+                strcat(pathText, entrada->d_name);
+
+                memmove(pathText, pathText+1, strlen(pathText));
+                fdText = open(pathText, O_RDONLY);
+                textTxt = read_until(fdText, '\n');
+                printf("%s\n", textTxt);
+                //remove(pathText);
+
+                pathText[0] = '\0';
             }
 
             nomFitxers = (char*) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
@@ -205,7 +217,10 @@ void readDirectori(DIR * directori){
     free(pathCarpeta);
     nomFitxers = NULL;
     free(nomFitxers);
+    textTxt = NULL;
+    free(textTxt);
     closedir(directori);
+    close(fdText);
 }
 
 //Mètode per substituir el funcionament del signal Alarma
