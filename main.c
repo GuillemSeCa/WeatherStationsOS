@@ -126,39 +126,54 @@ void removeChar(char *str, char garbage) {
     *dst = '\0';
 }
 
-//Mètode per llegir la carpeta
+//Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectori(DIR * directori){
     struct dirent * entrada;
-    int firstTime=1;
-    int countFitxer=0;
+    int countFitxers=0;
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
     char textFitxers[255];
-    char pathText[255];
-    pathText[0] = '\0';
+    //char pathText[255];
+    //pathText[0] = '\0';
     
+    //Obrim el directori
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
     strcat(pathCarpeta, ".");
     strcat(pathCarpeta, config.pathCarpeta);
-
     directori = opendir(pathCarpeta);
 
+    //Guardem memòria pels fitxers
     nomFitxers = (char*) malloc(sizeof(char) * 1);
 
-    while( (entrada = readdir(directori)) != NULL ){
-        if(strcmp(".", entrada->d_name) == 0 || strcmp("..", entrada->d_name) == 0){
+    //Bucle per recòrrer tots els fitxers de la carpeta
+    while((entrada = readdir(directori)) != NULL){
+        countFitxers++;
+        //Ens saltem els fitxers '.' i '..' que sempre trobarem
+        if(countFitxers > 2) {
+            //printf("File %3d: %s\n",(countFitxers-2),entrada->d_name);
+            //Si és un arxiu .txt, llegim la informació del fitxer dades
+            if (strstr(entrada->d_name , ".txt")) {
+                printf("\nhola\n");
+            }
+
+            nomFitxers = (char*) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
+            strcat(entrada->d_name, "\n");
+            strcat(nomFitxers, entrada->d_name);
+        }
+        /*if(strcmp(".", entrada->d_name) == 0 || strcmp("..", entrada->d_name) == 0){
             if(firstTime == 1){
                 write(1, "No files available\n", 20);
                 firstTime=0;
                 break;
             }
-        }else{
-            countFitxer++;
-            firstTime=0;
+        }else{*/
+            /*countFitxer++;
+            //firstTime=0;
             
             nomFitxers = (char*) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
             strcat(entrada->d_name, "\n");
             strcat(nomFitxers, entrada->d_name);
+            printf("%s\n", nomFitxers);
 
             //Si és un arxiu .txt, llegim la informació del fitxer dades
             if(entrada->d_name[strlen(entrada->d_name)-2] == 't' && entrada->d_name[strlen(entrada->d_name)-3] == 'x' && entrada->d_name[strlen(entrada->d_name)-4] == 't' && entrada->d_name[strlen(entrada->d_name)-5] == '.'){
@@ -170,15 +185,23 @@ void readDirectori(DIR * directori){
                 pathText[strlen(pathText) -1]= '\0';
                 readEstacio(estacio, pathText);
             }
-        }
+        }*/
     }
 
-    if(countFitxer > 0){
-        sprintf(textFitxers, "%d files found\n", countFitxer);
+    //Eliminem el comptador dels dos fitxers '.' i '..'
+    countFitxers = countFitxers - 2;
+    //Si no hi ha fitxers dins de la carpeta
+    if(countFitxers == 0) {
+        write(1, "No files available\n", 20);
+    //Si hi ha fitxers dins de la carpeta
+    } else {
+        //Mostrem els fitxers
+        sprintf(textFitxers, "%d files found\n", countFitxers);
         write(1, textFitxers, strlen(textFitxers));
         write(1, nomFitxers, strlen(nomFitxers));
     }
     
+    //Alliberem tota la memòria
     free(pathCarpeta);
     nomFitxers = NULL;
     free(nomFitxers);
@@ -188,15 +211,11 @@ void readDirectori(DIR * directori){
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal(){
     //Llegeix els directoris
-    //readDirectori(directori);
+    write(1, "Testing...\n", 12);
+    readDirectori(directori);
 
     signal(SIGALRM, alarmaSignal);
     alarm(config.tempsRevisioFixers);
-}
-
-//Mètode per escriure missatge informatiu
-void writeTesting(){
-    write(1, "Testing...\n", 12);
 }
 
 int main(int argc, char ** argv){   
@@ -214,7 +233,6 @@ int main(int argc, char ** argv){
     write(1, "$", 1);
     write(1, config.nomEstacio, strlen(config.nomEstacio));
     write(1, ":\n", 3);
-    writeTesting();
     
     //directori = opendir(config.pathCarpeta);
 
