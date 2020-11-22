@@ -59,6 +59,29 @@ char* read_until(int fd, char end) {
     return string;
 }
 
+//Mètode per llegir un fitxer de text, retornant quan és el final del fitxer
+char* read_until_end(int fd, char end, int * fiFitxer) {
+    int i = 0, size;
+    char c = '\0';
+    char* string = (char*)malloc(sizeof(char));
+    while(1) {
+        size = read(fd, &c, sizeof(char));
+        
+        if(c != end && size > 0 && c != '&') {
+            string = (char*)realloc(string, sizeof(char) * (i + 2));
+            string[i++] = c;
+        }else{
+            i++; //Pel \0
+            if(size == 0) {
+                *fiFitxer = 1;
+            }
+            break;
+        }
+    }
+    string[i - 1] = '\0';
+    return string;
+}
+
 //Mètode per llegir el fitxer de configuració
 void readConfigFile(Config * config, char * path){
     int fdConfig;
@@ -99,12 +122,12 @@ void readEstacio(Estacio * estacio, char * path){
             estacio[0].pressioAtmosferica = atof(read_until(fd_estacio, '\n'));
             estacio[0].precipitacio = atof(read_until(fd_estacio, '\n'));
             
-            printf("%s\n", estacio[0].data);
+            /*printf("%s\n", estacio[0].data);
             printf("%s\n", estacio[0].hora);
             printf("%f\n", estacio[0].temperatura);
             printf("%d\n", estacio[0].humitat);
             printf("%f\n", estacio[0].pressioAtmosferica);
-            printf("%f\n", estacio[0].precipitacio);
+            printf("%f\n", estacio[0].precipitacio);*/
         }
     }
 
@@ -129,10 +152,11 @@ void removeChar(char *str, char garbage) {
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectori(DIR * directori){
     struct dirent * entrada;
-    int countFitxers = 0, fdText = 0;
+    int countFitxers = 0, fdText = 0, fiFitxer = 0;
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
     char * textTxt = NULL;
+    char * totalTextTxt = NULL;
     char textFitxers[255], pathText[255];
     pathText[0] = '\0';
     
@@ -154,6 +178,12 @@ void readDirectori(DIR * directori){
             if (strstr(entrada->d_name , ".txt")) {
                 //Reservem memòria
                 textTxt = (char*) malloc(sizeof(char));
+                totalTextTxt = (char*) malloc(sizeof(char));
+                
+                //Comencem a crear el missatge sencer del .txt amb el nom
+                totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (strlen(entrada->d_name)+1));
+                strcat(totalTextTxt, entrada->d_name);
+                strcat(totalTextTxt, "\n");
 
                 //Guardem el path del fitxer a llegir
                 strcat(pathText, config.pathCarpeta);
@@ -161,12 +191,19 @@ void readDirectori(DIR * directori){
                 strcat(pathText, entrada->d_name);
                 memmove(pathText, pathText+1, strlen(pathText));
 
-                //Obrim fitxer i el llegim
+                //Obrim fitxer, el llegim i ens guardem el seu contingut
                 fdText = open(pathText, O_RDONLY);
-                textTxt = read_until(fdText, '\n');
-                printf("%s\n", textTxt);
-                //remove(pathText);
+                while(fiFitxer == 0) {
+                    textTxt = read_until_end(fdText, '\n', &fiFitxer);
+                    totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * 1111);
+                    strcat(totalTextTxt, textTxt);
+                    if(fiFitxer == 0) {
+                        totalTextTxt[strlen(totalTextTxt)-1] = '\0';
+                    }
+                }
+                remove(pathText);
 
+                //Reiniciem el path al fitxer .txt
                 pathText[0] = '\0';
             }
 
@@ -174,32 +211,6 @@ void readDirectori(DIR * directori){
             strcat(entrada->d_name, "\n");
             strcat(nomFitxers, entrada->d_name);
         }
-        /*if(strcmp(".", entrada->d_name) == 0 || strcmp("..", entrada->d_name) == 0){
-            if(firstTime == 1){
-                write(1, "No files available\n", 20);
-                firstTime=0;
-                break;
-            }
-        }else{*/
-            /*countFitxer++;
-            //firstTime=0;
-            
-            nomFitxers = (char*) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
-            strcat(entrada->d_name, "\n");
-            strcat(nomFitxers, entrada->d_name);
-            printf("%s\n", nomFitxers);
-
-            //Si és un arxiu .txt, llegim la informació del fitxer dades
-            if(entrada->d_name[strlen(entrada->d_name)-2] == 't' && entrada->d_name[strlen(entrada->d_name)-3] == 'x' && entrada->d_name[strlen(entrada->d_name)-4] == 't' && entrada->d_name[strlen(entrada->d_name)-5] == '.'){
-                strcat(pathText, config.pathCarpeta);
-                removeChar(pathText, '/');
-                strcat(pathText, "/");
-                strcat(pathText, entrada->d_name);
-                printf("%s\n", pathText);
-                pathText[strlen(pathText) -1]= '\0';
-                readEstacio(estacio, pathText);
-            }
-        }*/
     }
 
     //Eliminem el comptador dels dos fitxers '.' i '..'
@@ -213,6 +224,9 @@ void readDirectori(DIR * directori){
         sprintf(textFitxers, "%d files found\n", countFitxers);
         write(1, textFitxers, strlen(textFitxers));
         write(1, nomFitxers, strlen(nomFitxers));
+        write(1, "\n", 1);
+        write(1, totalTextTxt, strlen(totalTextTxt));
+        write(1, "\n\n", 2);
     }
     
     //Alliberem tota la memòria
@@ -221,18 +235,31 @@ void readDirectori(DIR * directori){
     free(nomFitxers);
     textTxt = NULL;
     free(textTxt);
+    totalTextTxt = NULL;
+    free(totalTextTxt);
     closedir(directori);
     close(fdText);
 }
 
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal(){
+    //Mostrem missatge nom estacio per pantalla
+    write(1, "$", 1);
+    write(1, config.nomEstacio, strlen(config.nomEstacio));
+    write(1, ":\n", 3);
     //Llegeix els directoris
     write(1, "Testing...\n", 12);
     readDirectori(directori);
 
     signal(SIGALRM, alarmaSignal);
     alarm(config.tempsRevisioFixers);
+}
+
+//Mètode per substituir el funcionament del signal CTRL+C
+void ctrlCSignal(){
+    //Llegeix els directoris
+    write(1, "\nDisconnecting Danny...", 23);
+    raise(SIGINT);
 }
 
 int main(int argc, char ** argv){   
@@ -242,17 +269,15 @@ int main(int argc, char ** argv){
         return -1;
     }
 
+    //Canviem el que fa per defecte el CTRL+C
+    signal(SIGINT, ctrlCSignal);
+
     //Missatge benvinguda
     write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
 
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
-    write(1, "$", 1);
-    write(1, config.nomEstacio, strlen(config.nomEstacio));
-    write(1, ":\n", 3);
     
-    //directori = opendir(config.pathCarpeta);
-
     signal(SIGALRM, alarmaSignal);
     alarm(1);
 
