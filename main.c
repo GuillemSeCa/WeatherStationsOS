@@ -155,11 +155,13 @@ void readDirectori(DIR * directori){
                 //Reservem memòria
                 textTxt = (char*) malloc(sizeof(char));
 
+                //Guardem el path del fitxer a llegir
                 strcat(pathText, config.pathCarpeta);
                 strcat(pathText, "/");
                 strcat(pathText, entrada->d_name);
-
                 memmove(pathText, pathText+1, strlen(pathText));
+
+                //Obrim fitxer i el llegim
                 fdText = open(pathText, O_RDONLY);
                 textTxt = read_until(fdText, '\n');
                 printf("%s\n", textTxt);
