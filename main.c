@@ -13,7 +13,7 @@
 #include "Config.h"
 #include "ReadFiles.h"
 
-#define MSG_BENVINGUDA "\n\nStarting Danny...\n\n"
+#define MSG_BENVINGUDA "\nStarting Danny...\n\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
 //Variables globals
@@ -52,7 +52,11 @@ void alarmaSignal(){
 
 //Mètode per substituir el funcionament del signal CTRL+C
 void ctrlCSignal(){
-    //Llegeix els directoris
+    //Mostrem missatge nom estacio per pantalla
+    write(1, "\n$", 2);
+    write(1, config.nomEstacio, strlen(config.nomEstacio));
+    write(1, ":", 1);
+    //Desconnectem Danny
     write(1, "\nDisconnecting Danny...", 23);
     raise(SIGINT);
 }

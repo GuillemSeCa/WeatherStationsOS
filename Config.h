@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+#include "ReadFiles.h"
+
 //Estructura per guardar la configuració
 typedef struct{
     char * nomEstacio;

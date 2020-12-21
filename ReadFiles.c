@@ -1,6 +1,6 @@
 #include "ReadFiles.h"
 
-extern Config config;
+Config config;
 
 //Mètode per llegir un fitxer de text utilitzant FD
 char* read_until(int fd, char end) {
@@ -106,12 +106,14 @@ void readDirectori(DIR * directori){
                         totalTextTxt[strlen(totalTextTxt)-1] = '\0';
                     }
                 }
-                remove(pathText);
+                //Eliminem el fitxer
+                //remove(pathText);
 
                 //Reiniciem el path al fitxer .txt
                 pathText[0] = '\0';
             }
 
+            //Afegim un \n
             nomFitxers = (char*) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
             strcat(entrada->d_name, "\n");
             strcat(nomFitxers, entrada->d_name);

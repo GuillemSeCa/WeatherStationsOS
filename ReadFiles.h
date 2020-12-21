@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+#include "Config.h"
+
 //Estructura per guardar les dades d'una estació
 typedef struct{
     char * data;
@@ -29,3 +31,5 @@ char* read_until_end(int fd, char end, int * fiFitxer);
 void readEstacio(Estacio * estacio, char * path);
 
 char* read_until(int fd, char end);
+
+
