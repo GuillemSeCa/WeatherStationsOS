@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-
 #include "ReadFiles.h"
 
 //Estructura per guardar la configuració
@@ -25,4 +24,5 @@ typedef struct{
     int portWendy;
 }Config;
 
+//Mètode per llegir el fitxer de configuració
 void readConfigFile(Config * config, char * path);

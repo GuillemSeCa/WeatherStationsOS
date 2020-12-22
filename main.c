@@ -9,10 +9,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-
 #include "Config.h"
 #include "ReadFiles.h"
+#include "Signals.h"
 
+//Constants
 #define MSG_BENVINGUDA "\nStarting Danny...\n\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
@@ -36,31 +37,7 @@ void removeChar(char *str, char garbage) {
     *dst = '\0';
 }
 
-//Mètode per substituir el funcionament del signal Alarma
-void alarmaSignal(){
-    //Mostrem missatge nom estacio per pantalla
-    write(1, "$", 1);
-    write(1, config.nomEstacio, strlen(config.nomEstacio));
-    write(1, ":\n", 3);
-    //Llegeix els directoris
-    write(1, "Testing...\n", 12);
-    readDirectori(directori);
-
-    signal(SIGALRM, alarmaSignal);
-    alarm(config.tempsRevisioFixers);
-}
-
-//Mètode per substituir el funcionament del signal CTRL+C
-void ctrlCSignal(){
-    //Mostrem missatge nom estacio per pantalla
-    write(1, "\n$", 2);
-    write(1, config.nomEstacio, strlen(config.nomEstacio));
-    write(1, ":", 1);
-    //Desconnectem Danny
-    write(1, "\nDisconnecting Danny...", 23);
-    raise(SIGINT);
-}
-
+//Mètode principal
 int main(int argc, char ** argv){   
     //Comprovem que el número d'arguments sigui correcte
     if(argc != 2){
@@ -77,11 +54,14 @@ int main(int argc, char ** argv){
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
     
+    //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
+    //Iniciem el programa
     alarm(1);
 
+    //Bucle infinit fins que fem CTRL+C
     while(1) pause();
 
-    //Alliberem tota la memòria dinàmica
+    //Alliberem tota la memòria dinàmica restant
     freeMemoria(estacio);
 }

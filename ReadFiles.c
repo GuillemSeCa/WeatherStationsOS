@@ -1,8 +1,9 @@
 #include "ReadFiles.h"
 
+//Variable global
 Config config;
 
-//Mètode per llegir un fitxer de text utilitzant FD
+//Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char* read_until(int fd, char end) {
     int i = 0, size;
     char c = '\0';
@@ -14,7 +15,8 @@ char* read_until(int fd, char end) {
             string = (char*)realloc(string, sizeof(char) * (i + 2));
             string[i++] = c;
         }else{
-            i++; //Pel \0
+            //Pel \0
+            i++;
             break;
         }
     }
@@ -22,19 +24,50 @@ char* read_until(int fd, char end) {
     return string;
 }
 
-//Mètode per llegir la informació d'una estació
+//Mètode per llegir un fitxer de text, retornant quan és el final del fitxer
+char* read_until_end(int fd, char end, int * fiFitxer) {
+    int i = 0, size;
+    char c = '\0';
+    char* string = (char*)malloc(sizeof(char));
+    while(1) {
+        size = read(fd, &c, sizeof(char));
+        
+        if(c != end && size > 0 && c != '&') {
+            string = (char*)realloc(string, sizeof(char) * (i + 2));
+            string[i++] = c;
+        }else{
+            //Pel \0
+            i++;
+            if(size == 0) {
+                *fiFitxer = 1;
+            }
+            break;
+        }
+    }
+    string[i - 1] = '\0';
+    return string;
+}
+
+//Mètode per llegir la informació d'una estació, en un fitxer
 void readEstacio(Estacio * estacio, char * path){
     int fd_estacio;
 
+    //Obtenim el file descriptor del fitxer de configuració
     fd_estacio = open(path, O_RDONLY);
+
+    //Verifiquem que s'hagi obtingut correctament
     if(fd_estacio < 0){
         write(1, "Error lectura de fitxer estacio!\n", 34);
-    }else{
+    //Si s'ha obtingut correctament
+    } else {
+        //Reservem memòria per guardar la informació de l'estació
         estacio = (Estacio*) malloc(sizeof(Estacio));
 
+        //Comprovem que s'hagi reservat correctament la memòria
         if(estacio == NULL){
             write(1, "Error reserva de memoria estructura Estacio!\n", 46);
-        }else{
+        } else {
+            //Llegim la informació de l'estació
             estacio[0].data = read_until(fd_estacio, '\n');
             estacio[0].hora = read_until(fd_estacio, '\n');
             estacio[0].temperatura = atof(read_until(fd_estacio, '\n'));
@@ -51,19 +84,22 @@ void readEstacio(Estacio * estacio, char * path){
         }
     }
 
+    //Tanquem el file descriptor
     close(fd_estacio);
 }
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectori(DIR * directori){
     struct dirent * entrada;
-    int countFitxers = 0, fdText = 0, fiFitxer = 0;
+    int countFitxers = 0, fdText = 0, tamanyExtra = 11111, fiFitxer = 0;
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
     char * textTxt = NULL;
     char * totalTextTxt = NULL;
-    char textFitxers[255], pathText[255];
+    char textFitxers[255], pathText[255], n[2];
     pathText[0] = '\0';
+    n[0] = '\n';
+    n[1] = '\0';
     
     //Obrim el directori
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
@@ -100,12 +136,16 @@ void readDirectori(DIR * directori){
                 fdText = open(pathText, O_RDONLY);
                 while(fiFitxer == 0) {
                     textTxt = read_until_end(fdText, '\n', &fiFitxer);
-                    totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * 1111);
+                    totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (tamanyExtra+1));
                     strcat(totalTextTxt, textTxt);
-                    if(fiFitxer == 0) {
+                    //Si és el final del fitxer, finalitzem l'array amb un \0
+                    if(fiFitxer == 1) {
                         totalTextTxt[strlen(totalTextTxt)-1] = '\0';
+                    } else {
+                        strcat(totalTextTxt, n);
                     }
                 }
+
                 //Eliminem el fitxer
                 //remove(pathText);
 
@@ -136,7 +176,7 @@ void readDirectori(DIR * directori){
         write(1, "\n\n", 2);
     }
     
-    //Alliberem tota la memòria
+    //Alliberem tota la memòria dinàmica
     free(pathCarpeta);
     nomFitxers = NULL;
     free(nomFitxers);
@@ -146,27 +186,4 @@ void readDirectori(DIR * directori){
     free(totalTextTxt);
     closedir(directori);
     close(fdText);
-}
-
-//Mètode per llegir un fitxer de text, retornant quan és el final del fitxer
-char* read_until_end(int fd, char end, int * fiFitxer) {
-    int i = 0, size;
-    char c = '\0';
-    char* string = (char*)malloc(sizeof(char));
-    while(1) {
-        size = read(fd, &c, sizeof(char));
-        
-        if(c != end && size > 0 && c != '&') {
-            string = (char*)realloc(string, sizeof(char) * (i + 2));
-            string[i++] = c;
-        }else{
-            i++; //Pel \0
-            if(size == 0) {
-                *fiFitxer = 1;
-            }
-            break;
-        }
-    }
-    string[i - 1] = '\0';
-    return string;
 }
