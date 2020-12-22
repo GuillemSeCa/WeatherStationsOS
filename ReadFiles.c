@@ -91,15 +91,14 @@ void readEstacio(Estacio * estacio, char * path){
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectori(DIR * directori){
     struct dirent * entrada;
-    int countFitxers = 0, fdText = 0, tamanyExtra = 11111, fiFitxer = 0;
+    int countFitxers = 0, fdText = 0/*, tamanyExtra = 11111*/, fiFitxer = 0;
     char * nomFitxers = NULL;
     char * pathCarpeta = NULL;
     char * textTxt = NULL;
-    char * totalTextTxt = NULL;
-    char textFitxers[255], pathText[255], n[2];
+    //char * totalTextTxt = NULL;
+    char textFitxers[255], pathText[255], totalTextTxt[2555];
+    totalTextTxt[0] = '\0';
     pathText[0] = '\0';
-    n[0] = '\n';
-    n[1] = '\0';
     
     //Obrim el directori
     pathCarpeta = (char*) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
@@ -119,10 +118,13 @@ void readDirectori(DIR * directori){
             if (strstr(entrada->d_name , ".txt")) {
                 //Reservem memòria
                 textTxt = (char*) malloc(sizeof(char));
-                totalTextTxt = (char*) malloc(sizeof(char));
+                //if(countFitxers == 3) {
+                    //totalTextTxt = (char*) malloc(sizeof(char));
+                //}
                 
                 //Comencem a crear el missatge sencer del .txt amb el nom
-                totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (strlen(entrada->d_name)+1));
+                //totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (strlen(entrada->d_name)+1));
+                strcat(totalTextTxt, "\n");
                 strcat(totalTextTxt, entrada->d_name);
                 strcat(totalTextTxt, "\n");
 
@@ -134,15 +136,17 @@ void readDirectori(DIR * directori){
 
                 //Obrim fitxer, el llegim i ens guardem el seu contingut
                 fdText = open(pathText, O_RDONLY);
+                fiFitxer = 0;
                 while(fiFitxer == 0) {
                     textTxt = read_until_end(fdText, '\n', &fiFitxer);
-                    totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (tamanyExtra+1));
+                    //totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (tamanyExtra+1));
                     strcat(totalTextTxt, textTxt);
                     //Si és el final del fitxer, finalitzem l'array amb un \0
                     if(fiFitxer == 1) {
-                        totalTextTxt[strlen(totalTextTxt)-1] = '\0';
+                        strcat(totalTextTxt, "\n");
+                        totalTextTxt[strlen(totalTextTxt)] = '\0';
                     } else {
-                        strcat(totalTextTxt, n);
+                        strcat(totalTextTxt, "\n");
                     }
                 }
 
@@ -171,7 +175,6 @@ void readDirectori(DIR * directori){
         sprintf(textFitxers, "%d files found\n", countFitxers);
         write(1, textFitxers, strlen(textFitxers));
         write(1, nomFitxers, strlen(nomFitxers));
-        write(1, "\n", 1);
         write(1, totalTextTxt, strlen(totalTextTxt));
         write(1, "\n\n", 2);
     }
@@ -182,8 +185,8 @@ void readDirectori(DIR * directori){
     free(nomFitxers);
     textTxt = NULL;
     free(textTxt);
-    totalTextTxt = NULL;
-    free(totalTextTxt);
+    //totalTextTxt = NULL;
+    //free(totalTextTxt);
     closedir(directori);
     close(fdText);
 }

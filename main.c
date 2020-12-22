@@ -64,4 +64,6 @@ int main(int argc, char ** argv){
 
     //Alliberem tota la memòria dinàmica restant
     freeMemoria(estacio);
+
+    return 0;
 }
