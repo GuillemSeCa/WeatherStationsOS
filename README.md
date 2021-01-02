@@ -1,5 +1,11 @@
 # Projecte1_SistemesOperatius
 
+# COSES A ACABAR
+
+- [ ] Passar a memoria dinamica el que es llegeix d'un fixter .txt
+- [ ] Arreglar que una foto peta
+- [ ] Dades d'una meteor es guardin be
+
 Bones, hem tingut molts problemes amb la fase 1, tot i que sembla que perfi ho hem aconseguit arreglar. Ens ha retrassat molt i no hem pogut avançar, però si tot i així poguessiu corregir com si fos la fase1, ho agrairiem molt, moltes gràcies!
 
 # Using the makefile
