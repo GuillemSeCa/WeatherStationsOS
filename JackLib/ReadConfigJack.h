@@ -12,11 +12,10 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-/*
+
 typedef struct{
     char * ip;
     int port;
 }ConfigJack;
 
 void readConfigFileJack(ConfigJack * config, char * path);
-*/

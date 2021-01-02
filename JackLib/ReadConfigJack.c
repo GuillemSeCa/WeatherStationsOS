@@ -1,5 +1,5 @@
 #include "ReadConfigJack.h"
-/*
+
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char* read_until(int fd, char end) {
     int i = 0, size;
@@ -41,4 +41,3 @@ void readConfigFileJack(ConfigJack * config, char * path){
     //Tanquem el file descriptor
     close(fdConfig);
 }
-*/
