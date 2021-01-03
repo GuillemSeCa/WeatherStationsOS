@@ -1,22 +1,18 @@
 all: Danny Jack
-ReadFiles.o: DannyLib/ReadFiles.c DannyLib/ReadFiles.h
-	gcc -c DannyLib/ReadFiles.c -Wall -Wextra
-Config.o: DannyLib/Config.c DannyLib/Config.h
-	gcc -c DannyLib/Config.c -Wall -Wextra
-Signals.o: DannyLib/Signals.c DannyLib/Signals.h
-	gcc -c DannyLib/Signals.c -Wall -Wextra
-Danny.o: DannyLib/Danny.c DannyLib/ReadFiles.h DannyLib/Config.h DannyLib/Signals.h
+ReadFilesDanny.o: DannyLib/ReadFilesDanny.c DannyLib/ReadFilesDanny.h
+	gcc -c DannyLib/ReadFilesDanny.c -Wall -Wextra
+ConfigDanny.o: DannyLib/ConfigDanny.c DannyLib/ConfigDanny.h
+	gcc -c DannyLib/ConfigDanny.c -Wall -Wextra
+SignalsDanny.o: DannyLib/SignalsDanny.c DannyLib/SignalsDanny.h
+	gcc -c DannyLib/SignalsDanny.c -Wall -Wextra
+Danny.o: DannyLib/Danny.c DannyLib/ReadFilesDanny.h DannyLib/ConfigDanny.h DannyLib/SignalsDanny.h
 	gcc -c DannyLib/Danny.c -Wall -Wextra
-Danny: DannyLib/ReadFiles.o DannyLib/Config.o DannyLib/Signals.o DannyLib/Danny.o
-	gcc DannyLib/ReadFiles.o DannyLib/Config.o DannyLib/Signals.o DannyLib/Danny.o -o Danny
-ReadConfigJack.o: JackLib/ReadConfigJack.c JackLib/ReadConfigJack.h
-	gcc -c JackLib/ReadConfigJack.c -Wall -Wextra
-Jack.o: JackLib/Jack.c JackLib/ReadConfigJack.h
+Danny: DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/Danny.o
+	gcc DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/Danny.o -o Danny
+
+ConfigJack.o: JackLib/ConfigJack.c JackLib/ConfigJack.h
+	gcc -c JackLib/ConfigJack.c -Wall -Wextra
+Jack.o: JackLib/Jack.c JackLib/ConfigJack.h
 	gcc -c JackLib/Jack.c -Wall -Wextra
-Jack: JackLib/ReadConfigJack.o JackLib/Jack.o
-	gcc JackLib/Jack.o JackLib/ReadConfigJack.o -o Jack
-
-
-
-
-#gcc main.c Config.c Signals.c -o Danny -Wall -Wextra
+Jack: JackLib/ConfigJack.o JackLib/Jack.o
+	gcc JackLib/Jack.o JackLib/ConfigJack.o -o Jack

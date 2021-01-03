@@ -11,19 +11,17 @@
 #include <errno.h>
 #include <signal.h>
 #include <time.h>
+#include "ConfigJack.h"
 
-#include "ReadConfigJack.h"
-
-#define LISTEN_BACKLOG		20
-
+//Constants
+#define LISTEN_BACKLOG 20
 #define MSG_BENVINGUDA "Starting Jack...\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
-#define MSG_ERR_BIND        "[Servidor] Error durante el bind del puerto.\n"
+#define MSG_ERR_BIND "Error durant el bind del port (Servidor)!\n"
+#define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor!\n"
 
-#define MSG_ERR_SOCKET      "[Servidor] Error durante la creacion del socket.\n"
-
+//Variables globals
 int jack_fd;
-
 ConfigJack configJack;
 
 int launch_server(ConfigJack configJack) {
@@ -36,35 +34,36 @@ int launch_server(ConfigJack configJack) {
         return -1;
     }
 
-    bzero(&s_addr, sizeof (s_addr));
+    bzero(&s_addr, sizeof(s_addr));
     s_addr.sin_family = AF_INET;
-    s_addr.sin_port = htons (configJack.port);
+    s_addr.sin_port = htons(configJack.port);
     s_addr.sin_addr.s_addr = inet_addr(configJack.ip);
     //printf("%d\n", bind (danny_fd, (void *) &s_addr, sizeof (s_addr)));
-    if (bind (jack_fd, (void *) &s_addr, sizeof (s_addr)) < 0) {
+    if (bind(jack_fd, (void *) &s_addr, sizeof(s_addr)) < 0) {
         write(1, MSG_ERR_BIND, sizeof(MSG_ERR_BIND));
-        
+
         return -1;
     }
 
- 	listen(jack_fd, LISTEN_BACKLOG);
+    listen(jack_fd, LISTEN_BACKLOG);
     return 0;
 
 }
 
-void serverRun(){
+void serverRun() {
     struct sockaddr_in c_addr;
-    socklen_t c_len = sizeof (c_addr);
+    socklen_t c_len = sizeof(c_addr);
 
-    while(1){
-        jack_fd = accept(jack_fd , (void *) &c_addr, &c_len);
+    while (1) {
+        jack_fd = accept(jack_fd, (void *) &c_addr, &c_len);
 
     }
 }
-int main(int argc, char ** argv){   
+
+int main(int argc, char **argv) {
     write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
     //Comprovem que el número d'arguments sigui correcte
-    if(argc != 2){
+    if (argc != 2) {
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
         return -1;
     }
@@ -76,7 +75,4 @@ int main(int argc, char ** argv){
     serverRun();
 
     close(jack_fd);
-    
-    
-
 }

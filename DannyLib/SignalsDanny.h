@@ -1,4 +1,7 @@
-#pragma once 
+/*
+* Mòdul amb els mètodes que treballen amb Signals
+*/
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +14,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include "Config.h"
+#include "ConfigDanny.h"
 
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal();

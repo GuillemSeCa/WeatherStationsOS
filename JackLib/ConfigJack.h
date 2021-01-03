@@ -1,3 +1,6 @@
+/*
+* Mòdul amb els mètodes per llegir el fitxer de configuració de Jack
+*/
 #pragma once
 
 #include <stdio.h>
@@ -11,18 +14,15 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include "ReadFiles.h"
 
 //Estructura per guardar la configuració
-typedef struct{
-    char * nomEstacio;
-    char * pathCarpeta;
-    int tempsRevisioFixers;
-    char * ipJack;
-    int portJack;
-    char * ipWendy;
-    int portWendy;
-}Config;
+typedef struct {
+    char *ip;
+    int port;
+} ConfigJack;
+
+//Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
+char *readUntil(int fd, char end);
 
 //Mètode per llegir el fitxer de configuració
-void readConfigFile(Config * config, char * path);
+void readConfigFileJack(ConfigJack *config, char *path);

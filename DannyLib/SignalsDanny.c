@@ -1,11 +1,11 @@
-#include "Signals.h"
+#include "SignalsDanny.h"
 
 //Variable global
 Config config;
-DIR * directori;
+DIR *directori;
 
 //Mètode per substituir el funcionament del signal Alarma
-void alarmaSignal(){
+void alarmaSignal() {
     //Mostrem missatge nom estacio per pantalla
     write(1, "$", 1);
     write(1, config.nomEstacio, strlen(config.nomEstacio));
@@ -19,7 +19,7 @@ void alarmaSignal(){
 }
 
 //Mètode per substituir el funcionament del signal CTRL+C
-void ctrlCSignal(){
+void ctrlCSignal() {
     //Mostrem missatge nom estacio per pantalla
     write(1, "\n$", 2);
     write(1, config.nomEstacio, strlen(config.nomEstacio));
