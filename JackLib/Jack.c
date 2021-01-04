@@ -15,21 +15,22 @@
 
 //Constants
 #define LISTEN_BACKLOG 20
-#define MSG_BENVINGUDA "Starting Jack...\n"
+#define MSG_BENVINGUDA "\nStarting Jack...\n\n"
+#define MSG_JACK "$Jack:\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor)!\n"
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor!\n"
 
 //Variables globals
-int jack_fd;
+int fdDanny;
 ConfigJack configJack;
 
 int launch_server(ConfigJack configJack) {
     struct sockaddr_in s_addr;
 
-    jack_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    fdDanny = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (jack_fd < 0) {
+    if (fdDanny < 0) {
         write(1, MSG_ERR_SOCKET, sizeof(MSG_ERR_SOCKET));
         return -1;
     }
@@ -39,25 +40,34 @@ int launch_server(ConfigJack configJack) {
     s_addr.sin_port = htons(configJack.port);
     s_addr.sin_addr.s_addr = inet_addr(configJack.ip);
     //printf("%d\n", bind (danny_fd, (void *) &s_addr, sizeof (s_addr)));
-    if (bind(jack_fd, (void *) &s_addr, sizeof(s_addr)) < 0) {
+    if (bind(fdDanny, (void *) &s_addr, sizeof(s_addr)) < 0) {
         write(1, MSG_ERR_BIND, sizeof(MSG_ERR_BIND));
 
         return -1;
     }
 
-    listen(jack_fd, LISTEN_BACKLOG);
+    listen(fdDanny, LISTEN_BACKLOG);
     return 0;
 
 }
 
 void serverRun() {
+    char letra[100];
+    //char str[80];
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
 
     while (1) {
-        jack_fd = accept(jack_fd, (void *) &c_addr, &c_len);
+        write(1, MSG_JACK, sizeof(MSG_JACK));
+        write(1, "Waiting...\n", sizeof(char)*12);
+        fdDanny = accept(fdDanny, (void *) &c_addr, &c_len);
 
+        //sprintf(str, "New Connection: %s", M_PI);
+        read(fdDanny, &letra, sizeof(char)*7);
+        printf("%s", letra);
+        close(fdDanny);
     }
+    close(fdDanny);
 }
 
 int main(int argc, char **argv) {
@@ -69,10 +79,9 @@ int main(int argc, char **argv) {
     }
 
     readConfigFileJack(&configJack, argv[1]);
-    printf("IP: %s - PORT: %d \n", configJack.ip, configJack.port);
 
     launch_server(configJack);
     serverRun();
 
-    close(jack_fd);
+    close(fdDanny);
 }

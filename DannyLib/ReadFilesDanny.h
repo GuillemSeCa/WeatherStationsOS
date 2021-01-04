@@ -18,22 +18,23 @@
 
 //Estructura per guardar les dades d'una estació
 typedef struct {
-    char *data;
-    char *hora;
-    float temperatura;
-    int humitat;
-    float pressioAtmosferica;
-    float precipitacio;
-} Estacio;
+    char *fileName;
+    char *date;
+    char *hour;
+    float temperature;
+    int humidity;
+    float atmosphericPressure;
+    float precipitation;
+} Station;
 
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char *readUntil(int fd, char end);
 
 //Mètode per llegir un fitxer de text fins a cert caràcter, però afegint que retorni si és final del fitxer
-char *readUntilEnd(int fd, char end, int *fiFitxer);
+char *readUntilEnd(int fd, char end, int *endFile);
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
-void readDirectori(DIR *directori);
+void readDirectory(DIR *directory);
 
-//Mètode per llegir la informació d'una estació, en un fitxer
-void readEstation(Estacio *estacio, char *path);
+//Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
+void readStation(Station *station, char *path, int numStation);

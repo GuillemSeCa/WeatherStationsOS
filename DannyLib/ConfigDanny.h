@@ -18,9 +18,9 @@
 
 //Estructura per guardar la configuració
 typedef struct {
-    char *nomEstacio;
-    char *pathCarpeta;
-    int tempsRevisioFixers;
+    char *stationName;
+    char *pathFolder;
+    int revisionFilesTime;
     char *ipJack;
     int portJack;
     char *ipWendy;

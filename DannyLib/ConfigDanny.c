@@ -10,12 +10,12 @@ void readConfigFile(Config *config, char *path) {
     //Verifiquem que s'hagi obtingut correctament
     if (fdConfig < 0) {
         write(1, "Error lectura de fitxer config!\n", 33);
-    //Si s'ha obtingut correctament
+        //Si s'ha obtingut correctament
     } else {
         //Ens guardem la configuració del fitxer 
-        config->nomEstacio = readUntil(fdConfig, '\n');
-        config->pathCarpeta = readUntil(fdConfig, '\n');
-        config->tempsRevisioFixers = atoi(readUntil(fdConfig, '\n'));
+        config->stationName = readUntil(fdConfig, '\n');
+        config->pathFolder = readUntil(fdConfig, '\n');
+        config->revisionFilesTime = atoi(readUntil(fdConfig, '\n'));
         config->ipJack = readUntil(fdConfig, '\n');
         config->portJack = atoi(readUntil(fdConfig, '\n'));
         config->ipWendy = readUntil(fdConfig, '\n');

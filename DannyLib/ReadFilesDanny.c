@@ -25,7 +25,7 @@ char *readUntil(int fd, char end) {
 }
 
 //Mètode per llegir un fitxer de text, retornant quan és el final del fitxer
-char *readUntilEnd(int fd, char end, int *fiFitxer) {
+char *readUntilEnd(int fd, char end, int *endFile) {
     int i = 0, size;
     char c = '\0';
     char *string = (char *) malloc(sizeof(char));
@@ -39,7 +39,7 @@ char *readUntilEnd(int fd, char end, int *fiFitxer) {
             //Pel \0
             i++;
             if (size == 0) {
-                *fiFitxer = 1;
+                *endFile = 1;
             }
             break;
         }
@@ -48,145 +48,121 @@ char *readUntilEnd(int fd, char end, int *fiFitxer) {
     return string;
 }
 
-//Mètode per llegir la informació d'una estació, en un fitxer
-void readEstation(Estacio *estacio, char *path) {
-    int fd_estacio;
+//Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
+void readEstation(Station *station, char *path, int numStation) {
+    int fd_Station;
 
     //Obtenim el file descriptor del fitxer de configuració
-    fd_estacio = open(path, O_RDONLY);
+    fd_Station = open(path, O_RDONLY);
 
     //Verifiquem que s'hagi obtingut correctament
-    if (fd_estacio < 0) {
-        write(1, "Error lectura de fitxer estacio!\n", 34);
+    if (fd_Station < 0) {
+        write(1, "Error lectura de fitxer Station!\n", 34);
         //Si s'ha obtingut correctament
     } else {
-        //Reservem memòria per guardar la informació de l'estació
-        estacio = (Estacio *) malloc(sizeof(Estacio));
-
-        //Comprovem que s'hagi reservat correctament la memòria
-        if (estacio == NULL) {
-            write(1, "Error reserva de memoria estructura Estacio!\n", 46);
-        } else {
-            //Llegim la informació de l'estació
-            estacio[0].data = readUntil(fd_estacio, '\n');
-            estacio[0].hora = readUntil(fd_estacio, '\n');
-            estacio[0].temperatura = atof(readUntil(fd_estacio, '\n'));
-            estacio[0].humitat = atoi(readUntil(fd_estacio, '\n'));
-            estacio[0].pressioAtmosferica = atof(readUntil(fd_estacio, '\n'));
-            estacio[0].precipitacio = atof(readUntil(fd_estacio, '\n'));
-
-            /*printf("%s\n", estacio[0].data);
-            printf("%s\n", estacio[0].hora);
-            printf("%f\n", estacio[0].temperatura);
-            printf("%d\n", estacio[0].humitat);
-            printf("%f\n", estacio[0].pressioAtmosferica);
-            printf("%f\n", estacio[0].precipitacio);*/
-        }
+        //Llegim la informació de l'estació
+        station[numStation].date = readUntil(fd_Station, '\n');
+        station[numStation].hour = readUntil(fd_Station, '\n');
+        station[numStation].temperature = atof(readUntil(fd_Station, '\n'));
+        station[numStation].humidity = atoi(readUntil(fd_Station, '\n'));
+        station[numStation].atmosphericPressure = atof(readUntil(fd_Station, '\n'));
+        station[numStation].precipitation = atof(readUntil(fd_Station, '\n'));
     }
 
     //Tanquem el file descriptor
-    close(fd_estacio);
+    close(fd_Station);
 }
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
-void readDirectori(DIR *directori) {
-    struct dirent *entrada;
-    int countFitxers = 0, fdText = 0/*, tamanyExtra = 11111*/, fiFitxer = 0;
-    char *nomFitxers = NULL;
-    char *pathCarpeta = NULL;
-    char *textTxt = NULL;
-    //char * totalTextTxt = NULL;
-    char textFitxers[255], pathText[255], totalTextTxt[2555];
-    totalTextTxt[0] = '\0';
-    pathText[0] = '\0';
+void readDirectory(DIR *directory) {
+    struct dirent *entry;
+    int countFiles = 0, i = 0;
+    char *pathFolder;
+    Station *stations = NULL;
+    char numTextFilesFound[255], textFilePath[255], aux[255];
+    textFilePath[0] = '\0';
 
     //Obrim el directori
-    pathCarpeta = (char *) malloc(sizeof(char) * (strlen(config.pathCarpeta) + 1));
-    strcat(pathCarpeta, ".");
-    strcat(pathCarpeta, config.pathCarpeta);
-    directori = opendir(pathCarpeta);
+    pathFolder = (char *) malloc(sizeof(char) * (strlen(config.pathFolder) + 1));
+    strcat(pathFolder, ".");
+    strcat(pathFolder, config.pathFolder);
+    directory = opendir(pathFolder);
 
-    //Guardem memòria pels fitxers
-    nomFitxers = (char *) malloc(sizeof(char) * 1);
+    //Guardem memòria per les stations i comprovem que s'hagi fet correctament
+    stations = (Station *) malloc(sizeof(Station) * 1);
+    if (stations == NULL) {
+        write(1, "Error reserva memoria stations!\n", 34);
+        return;
+    }
 
     //Bucle per recòrrer tots els fitxers de la carpeta
-    while ((entrada = readdir(directori)) != NULL) {
-        countFitxers++;
+    while ((entry = readdir(directory)) != NULL) {
+        countFiles++;
         //Ens saltem els fitxers '.' i '..' que sempre trobarem
-        if (countFitxers > 2) {
+        if (countFiles > 2) {
             //Si és un arxiu .txt, llegim la informació del fitxer dades
-            if (strstr(entrada->d_name, ".txt")) {
-                //Reservem memòria
-                textTxt = (char *) malloc(sizeof(char));
-                //if(countFitxers == 3) {
-                //totalTextTxt = (char*) malloc(sizeof(char));
-                //}
+            if (strstr(entry->d_name, ".txt")) {
+                //Augmentem memòria dinàmica de la llista d'stations 
+                stations = (Station *) realloc(stations, sizeof(Station) * (countFiles - 1));
 
-                //Comencem a crear el missatge sencer del .txt amb el nom
-                //totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (strlen(entrada->d_name)+1));
-                strcat(totalTextTxt, "\n");
-                strcat(totalTextTxt, entrada->d_name);
-                strcat(totalTextTxt, "\n");
+                //Guardem el nom del fitxer
+                stations[countFiles - 3].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
+                strcat(stations[countFiles - 3].fileName, entry->d_name);
 
                 //Guardem el path del fitxer a llegir
-                strcat(pathText, config.pathCarpeta);
-                strcat(pathText, "/");
-                strcat(pathText, entrada->d_name);
-                memmove(pathText, pathText + 1, strlen(pathText));
+                strcat(textFilePath, config.pathFolder);
+                strcat(textFilePath, "/");
+                strcat(textFilePath, entry->d_name);
+                //Eliminem el primer caràcter '/' del path, ja que aquest es troba en el fitxer de configuració però no el volem
+                memmove(textFilePath, textFilePath + 1, strlen(textFilePath));
 
-                //Obrim fitxer, el llegim i ens guardem el seu contingut
-                fdText = open(pathText, O_RDONLY);
-                fiFitxer = 0;
-                while (fiFitxer == 0) {
-                    textTxt = readUntilEnd(fdText, '\n', &fiFitxer);
-                    //totalTextTxt = (char*)realloc(totalTextTxt, sizeof(char) * (tamanyExtra+1));
-                    strcat(totalTextTxt, textTxt);
-                    //Si és el final del fitxer, finalitzem l'array amb un \0
-                    if (fiFitxer == 1) {
-                        strcat(totalTextTxt, "\n");
-                        totalTextTxt[strlen(totalTextTxt)] = '\0';
-                    } else {
-                        strcat(totalTextTxt, "\n");
-                    }
-                }
+                //Llegim la informació de l'estació
+                readEstation(stations, textFilePath, countFiles - 3);
 
                 //Eliminem el fitxer
-                //remove(pathText);
+                //remove(textFilePath);
 
                 //Reiniciem el path al fitxer .txt
-                pathText[0] = '\0';
+                textFilePath[0] = '\0';
             }
-
-            //Afegim un \n
-            nomFitxers = (char *) realloc(nomFitxers, sizeof(char) * strlen(entrada->d_name));
-            strcat(entrada->d_name, "\n");
-            strcat(nomFitxers, entrada->d_name);
         }
     }
 
     //Eliminem el comptador dels dos fitxers '.' i '..'
-    countFitxers = countFitxers - 2;
+    countFiles = countFiles - 2;
     //Si no hi ha fitxers dins de la carpeta
-    if (countFitxers == 0) {
+    if (countFiles == 0) {
         write(1, "No files available\n", 20);
         //Si hi ha fitxers dins de la carpeta
     } else {
-        //Mostrem els fitxers
-        sprintf(textFitxers, "%d files found\n", countFitxers);
-        write(1, textFitxers, strlen(textFitxers));
-        write(1, nomFitxers, strlen(nomFitxers));
-        write(1, totalTextTxt, strlen(totalTextTxt));
-        write(1, "\n\n", 2);
+        //Mostrem tots els fitxers llegits amb la informació corresponent
+        sprintf(numTextFilesFound, "%d files found\n", countFiles);
+        write(1, numTextFilesFound, strlen(numTextFilesFound));
+        for (i = 0; i < countFiles; i++) {
+            write(1, stations[i].fileName, strlen(stations[i].fileName));
+            write(1, "\n", 1);
+        }
+        for (i = 0; i < countFiles; i++) {
+            sprintf(aux, "\n%s\n", stations[i].fileName);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%s\n", stations[i].date);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%s\n", stations[i].hour);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%.1f\n", stations[i].temperature);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%d\n", stations[i].humidity);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%.1f\n", stations[i].atmosphericPressure);
+            write(1, aux, strlen(aux));
+            sprintf(aux, "%.1f\n", stations[i].precipitation);
+            write(1, aux, strlen(aux));
+        }
     }
 
     //Alliberem tota la memòria dinàmica
-    free(pathCarpeta);
-    nomFitxers = NULL;
-    free(nomFitxers);
-    textTxt = NULL;
-    free(textTxt);
-    //totalTextTxt = NULL;
-    //free(totalTextTxt);
-    closedir(directori);
-    close(fdText);
+    free(pathFolder);
+    stations = NULL;
+    free(stations);
+    closedir(directory);
 }
