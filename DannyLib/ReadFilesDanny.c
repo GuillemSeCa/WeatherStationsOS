@@ -2,6 +2,7 @@
 
 //Variable global
 Config config;
+int fdServer;
 
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char *readUntil(int fd, char end) {
@@ -159,6 +160,13 @@ void readDirectory(DIR *directory) {
             write(1, aux, strlen(aux));
         }
     }
+
+    printf("SSSSSSSSSSSSSSSSS%s\n", stations[0].fileName);
+    
+    //write(fdServer, &stations[0], sizeof(stations[0]));
+    //write(fdServer, "helli\n", sizeof(char) * 7);
+    //printf("%d", fdServer);
+    //write(fdServer, "locur\n", sizeof(char) * 7);
 
     //Alliberem tota la memòria dinàmica
     free(pathFolder);

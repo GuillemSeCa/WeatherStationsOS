@@ -21,9 +21,23 @@
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor)!\n"
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor!\n"
 
+
+typedef struct {
+    char *fileName;
+    char *date;
+    char *hour;
+    float temperature;
+    int humidity;
+    float atmosphericPressure;
+    float precipitation;
+} Station;
+
+
 //Variables globals
 int fdDanny;
+int fdClient;
 ConfigJack configJack;
+Station estacio;
 
 int launch_server(ConfigJack configJack) {
     struct sockaddr_in s_addr;
@@ -56,18 +70,21 @@ void serverRun() {
     //char str[80];
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
-
-    while (1) {
+    
+    for(int i=0; i < 5; i++){
+    //while (1) {
         write(1, MSG_JACK, sizeof(MSG_JACK));
         write(1, "Waiting...\n", sizeof(char)*12);
-        fdDanny = accept(fdDanny, (void *) &c_addr, &c_len);
+        fdClient = accept(fdDanny, (void *) &c_addr, &c_len);
 
         //sprintf(str, "New Connection: %s", M_PI);
-        read(fdDanny, &letra, sizeof(char)*7);
-        printf("%s", letra);
-        close(fdDanny);
+        read(fdClient, &letra, sizeof(char)*7);
+        printf("%s\n", letra);
+        read(fdClient, &letra, sizeof(char)*7);
+        printf("%s\n", letra);
+        close(fdClient);
     }
-    close(fdDanny);
+    close(fdClient);
 }
 
 int main(int argc, char **argv) {

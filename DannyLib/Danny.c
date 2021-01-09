@@ -94,8 +94,10 @@ int main(int argc, char **argv) {
     readConfigFile(&config, argv[1]);
     //Ens connectem al servidor Jack
     write(1, MSG_JACK, strlen(MSG_JACK));
+    
     fdServer = connectWithServer(config.ipJack, config.portJack);
-    write(fdServer, "helli\n", sizeof(char) * 7);
+    //printf("AAAAAAAAAUUUUUUUUUUUUUUUUU%ld\n", strlen(config.stationName));
+    //write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));
 
     //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
