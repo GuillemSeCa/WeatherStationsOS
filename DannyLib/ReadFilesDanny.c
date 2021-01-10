@@ -76,13 +76,15 @@ void readEstation(Station *station, char *path, int numStation) {
 
 //Mètode per enviar la informació de les estacions al servidor Jack
 void sendStationsToServer(Station *stations, int numStations) {
-    int numSend, i;
+    int numSend, i=0;
 
     //Enviem el número d'estacions al servidor
     write(fdServer, &numStations, sizeof(int));
 
     //Iterem totes les estacions i anem enviant la informació
     write(1, "\nSending data...\n", 17);
+
+    printf("STATION NAME SEND DATA: %s\n", stations[i].fileName);
     for(i = 0; i < numStations; i++) {
         //fileName
         numSend = strlen(stations[i].fileName);
@@ -194,7 +196,6 @@ void readDirectory(DIR *directory) {
             write(1, aux, strlen(aux));
         }
     }
-    
     //Enviem la informació al servidor
     sendStationsToServer(stations, countFiles);
     

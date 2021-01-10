@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/shm.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -14,6 +15,7 @@
 #include "ConfigJack.h"
 #include "SignalsJack.h"
 #include "SocketsJack.h"
+
 
 //Constants
 #define MAX_CONNECTIONS 20
@@ -69,14 +71,38 @@ void serverRun() {
     char str[200];
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
+
+
+    
+
+
     
     //Bucle infinit per anar acceptant connexions fins CTRL+C
     while (1) {
         write(1, MSG_JACK, sizeof(MSG_JACK));
         write(1, "Waiting...\n", sizeof(char)*12);
         counterDannys++;
+        
+
+
+/********************************************************************************************************************************************************************
+ * 
+ * FALLLLLLLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAA AQUIIIIIIIIIIIIIIIIII
+ * 
+ ********************************************************************************************************************************************************************/
+
+
+
         //Creem un nou File Descriptor amb connexió activa 
         fdClientDannys[counterDannys] = accept(fdSocket, (void *) &c_addr, &c_len);
+
+        
+        
+        
+        
+
+
+
 
         //Llegim el nom de l'estació
         read(fdClientDannys[counterDannys], &numChar, sizeof(int));
@@ -88,7 +114,7 @@ void serverRun() {
         //Llegim quantes estacions rebrem i reservem la memòria dinàmica necessària
         read(fdClientDannys[counterDannys], &numStations, sizeof(int));
         stations = (Station *) malloc(sizeof(Station) * numStations);
-
+        
         //Llegim totes les estacions rebudes
         for(i = 0; i < numStations; i++) {
             //fileName
@@ -114,14 +140,16 @@ void serverRun() {
             read(fdClientDannys[counterDannys], &stations[i].atmosphericPressure, sizeof(float));
             //precipitation
             read(fdClientDannys[counterDannys], &stations[i].precipitation, sizeof(float));
-
+            
             printf("Estacio rebuda: %s\n %s\n %s\n %f %d %f %f\n", stations[i].fileName, stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
         }
+        //Alliberem memòria dinàmica
+        free(stations);
+        stations = NULL;
         
     }
-    //Alliberem memòria dinàmica
-    free(stations);
-    stations = NULL;
+    
+    
 
     //Tanquem els File Descriptors dels Clients per tancar la connexió activa
     for(i = 0; i < counterDannys; i++) {
@@ -129,7 +157,14 @@ void serverRun() {
     }
 }
 
+void lloydProcess(){
+    
+
+}
+
 int main(int argc, char **argv) {
+    pid_t pid;
+
     //Comprovem que el número d'arguments sigui correcte
     if (argc != 2) {
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
@@ -139,19 +174,32 @@ int main(int argc, char **argv) {
     //Canviem el que fa per defecte el CTRL+C
     signal(SIGINT, ctrlCSignal);
 
-    //Missatge benvinguda
-    write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
 
-    //Llegim el fitxer de configuració per obtenir la IP i Port d'aquest server Jack
-    readConfigFileJack(&configJack, argv[1]);
+    pid = fork();
+    if (pid == 0) {
+        //Child
+        lloydProcess();
+    }
+    else if (pid > 0) {
+        //Parent
+        
+        //Missatge benvinguda
+        write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
 
-    //Preparem la configuració d'aquest servidor Jack
-    launchServer(configJack);
-    //Iniciem el servidor i esperem connexió dels Clients Danny
-    serverRun();
+        //Llegim el fitxer de configuració per obtenir la IP i Port d'aquest server Jack
+        readConfigFileJack(&configJack, argv[1]);
 
-    //Tanquem el File Descriptor
-    close(fdSocket);
+        //Preparem la configuració d'aquest servidor Jack
+        launchServer(configJack);
+        //Iniciem el servidor i esperem connexió dels Clients Danny
+        serverRun();
+
+        //Tanquem el File Descriptor
+        close(fdSocket);
+    }
+
+
+    
 
     return 0;
 }
