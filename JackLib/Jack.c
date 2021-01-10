@@ -158,7 +158,45 @@ void serverRun() {
 }
 
 void lloydProcess(){
-    
+    key_t key;
+    int shmid;
+    Stations *data;
+    int mode;
+
+    if (argc > 2) {
+        fprintf(stderr, "usage: shmdemo [data_to_write]\n");
+        exit(1);
+    }
+
+    /* make the key: */
+    key = ftok("hello.txt", 'R')
+
+    /*  create the segment: */
+    if ((shmid = shmget(key, SHM_SIZE, 0644 | IPC_CREAT)) == -1) {
+        perror("shmget");
+        exit(1);
+    }
+
+    /* attach to the segment to get a pointer to it: */
+    data = shmat(shmid, NULL, 0);
+    if (data == (Stations *)(-1)) {
+        perror("shmat");
+        exit(1);
+    }
+
+    /* read or modify the segment, based on the command line: */
+    if (argc == 2) {
+        printf("writing to segment: \"%s\"\n", argv[1]);
+        strncpy(data, argv[1], SHM_SIZE);
+    } else
+        printf("segment contains: \"%s\"\n", data);
+
+    /* detach from the segment: */
+    if (shmdt(data) == -1) {
+        perror("shmdt");
+        exit(1);
+    }
+
 
 }
 
