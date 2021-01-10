@@ -15,23 +15,22 @@
 #include "ConfigDanny.h"
 #include "ReadFilesDanny.h"
 #include "SignalsDanny.h"
+#include "SocketsDanny.h"
 
 //Constants
 #define MSG_WELCOME "\nStarting Danny...\n"
 #define MSG_JACK "Connecting Jack...\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
-#define MSG_ERR_SOCKET "Error durant la creacio del socket del Client!\n"
-#define MSG_ERR_CONNECTION "Error en la connexió amb el servidor (Client)!\n"
 
 //Variables globals
 Config config;
 DIR *directory;
-Station *station = NULL;
+Station *stations = NULL;
 int fdServer;
 
-//Mètode per eliminar memòria
-void freeMemory(Station *station) {
-    free(station);
+//Mètode per eliminar la memòria dinàmica
+void freeMemory() {
+    free(stations);
 }
 
 //Mètode per eliminar un caràcter
@@ -44,40 +43,10 @@ void removeChar(char *str, char garbage) {
     *dst = '\0';
 }
 
-//Mètode per connectar-se a un servidor a partir d'una IP i un Port
-int connectWithServer(char *ip, int port) {
-    struct sockaddr_in s_addr;
-    int socket_conn = -1;
-
-    socket_conn = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    if (socket_conn < 0) {
-        write(1, MSG_ERR_SOCKET, sizeof(MSG_ERR_SOCKET));
-    } else {
-        memset(&s_addr, 0, sizeof(s_addr));
-        s_addr.sin_family = AF_INET;
-        s_addr.sin_port = htons(port);
-        s_addr.sin_addr.s_addr = inet_addr(ip);
-        if (connect(socket_conn, (void *) &s_addr, sizeof(s_addr)) < 0) {
-            char buff[128];
-            write(1, MSG_ERR_CONNECTION, sizeof(MSG_ERR_CONNECTION));
-            int bytes = sprintf(buff, "errno says: %s\n", strerror(errno));
-            write(1, buff, bytes);
-            close(socket_conn);
-            socket_conn = -1;
-        }
-    }
-
-    return socket_conn;
-}
-
-//Mètode per tancar el File Director del Servidor
-void closeConnectionServer() {
-    close(fdServer);
-}
-
 //Mètode principal
 int main(int argc, char **argv) {
+    int numSend;
+
     //Comprovem que el número d'arguments sigui correcte
     if (argc != 2) {
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
@@ -92,22 +61,24 @@ int main(int argc, char **argv) {
 
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
-    //Ens connectem al servidor Jack
+    //Ens connectem al servidor Jack i enviem el nom de l'estació
     write(1, MSG_JACK, strlen(MSG_JACK));
-    
     fdServer = connectWithServer(config.ipJack, config.portJack);
-    //printf("AAAAAAAAAUUUUUUUUUUUUUUUUU%ld\n", strlen(config.stationName));
-    //write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));
+    numSend = strlen(config.stationName);
+    write(fdServer, &numSend, sizeof(int));
+    write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));
 
     //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
     //Iniciem el programa
     alarm(1);
     //Bucle infinit fins que fem CTRL+C
-    while (1) pause();
+    while (1) {
+        pause();
+    }
 
     //Alliberem tota la memòria dinàmica restant i tanquem tot
-    freeMemory(station);
+    freeMemory();
     closeConnectionServer();
 
     return 0;

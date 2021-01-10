@@ -38,3 +38,6 @@ void readDirectory(DIR *directory);
 
 //Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
 void readStation(Station *station, char *path, int numStation);
+
+//Mètode per enviar la informació de les estacions al servidor Jack
+void sendStationsToServer(Station *stations, int numStations);

@@ -51,27 +51,61 @@ char *readUntilEnd(int fd, char end, int *endFile) {
 
 //Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
 void readEstation(Station *station, char *path, int numStation) {
-    int fd_Station;
+    int fdStation;
 
     //Obtenim el file descriptor del fitxer de configuració
-    fd_Station = open(path, O_RDONLY);
+    fdStation = open(path, O_RDONLY);
 
     //Verifiquem que s'hagi obtingut correctament
-    if (fd_Station < 0) {
+    if (fdStation < 0) {
         write(1, "Error lectura de fitxer Station!\n", 34);
         //Si s'ha obtingut correctament
     } else {
         //Llegim la informació de l'estació
-        station[numStation].date = readUntil(fd_Station, '\n');
-        station[numStation].hour = readUntil(fd_Station, '\n');
-        station[numStation].temperature = atof(readUntil(fd_Station, '\n'));
-        station[numStation].humidity = atoi(readUntil(fd_Station, '\n'));
-        station[numStation].atmosphericPressure = atof(readUntil(fd_Station, '\n'));
-        station[numStation].precipitation = atof(readUntil(fd_Station, '\n'));
+        station[numStation].date = readUntil(fdStation, '\n');
+        station[numStation].hour = readUntil(fdStation, '\n');
+        station[numStation].temperature = atof(readUntil(fdStation, '\n'));
+        station[numStation].humidity = atoi(readUntil(fdStation, '\n'));
+        station[numStation].atmosphericPressure = atof(readUntil(fdStation, '\n'));
+        station[numStation].precipitation = atof(readUntil(fdStation, '\n'));
     }
 
     //Tanquem el file descriptor
-    close(fd_Station);
+    close(fdStation);
+}
+
+//Mètode per enviar la informació de les estacions al servidor Jack
+void sendStationsToServer(Station *stations, int numStations) {
+    int numSend, i;
+
+    //Enviem el número d'estacions al servidor
+    write(fdServer, &numStations, sizeof(int));
+
+    //Iterem totes les estacions i anem enviant la informació
+    write(1, "\nSending data...\n", 17);
+    for(i = 0; i < numStations; i++) {
+        //fileName
+        numSend = strlen(stations[i].fileName);
+        write(fdServer, &numSend, sizeof(int));
+        write(fdServer, stations[i].fileName, sizeof(char) * strlen(stations[0].fileName));
+        //date
+        numSend = strlen(stations[i].date);
+        write(fdServer, &numSend, sizeof(int));
+        write(fdServer, stations[i].date, sizeof(char) * strlen(stations[0].date));
+        //hour
+        numSend = strlen(stations[i].hour);
+        write(fdServer, &numSend, sizeof(int));
+        write(fdServer, stations[i].hour, sizeof(char) * strlen(stations[0].hour));
+        //temperature
+        write(fdServer, &stations[i].temperature, sizeof(float));
+        //humidity
+        write(fdServer, &stations[i].humidity, sizeof(int));
+        //atmosphericPressure
+        write(fdServer, &stations[i].atmosphericPressure, sizeof(float));
+        //precipitation
+        write(fdServer, &stations[i].precipitation, sizeof(float));
+    }
+    write(1, "Data sent\n", 11);
 }
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
@@ -160,17 +194,13 @@ void readDirectory(DIR *directory) {
             write(1, aux, strlen(aux));
         }
     }
-
-    printf("SSSSSSSSSSSSSSSSS%s\n", stations[0].fileName);
     
-    //write(fdServer, &stations[0], sizeof(stations[0]));
-    //write(fdServer, "helli\n", sizeof(char) * 7);
-    //printf("%d", fdServer);
-    //write(fdServer, "locur\n", sizeof(char) * 7);
-
+    //Enviem la informació al servidor
+    sendStationsToServer(stations, countFiles);
+    
     //Alliberem tota la memòria dinàmica
     free(pathFolder);
-    stations = NULL;
     free(stations);
+    stations = NULL;
     closedir(directory);
 }
