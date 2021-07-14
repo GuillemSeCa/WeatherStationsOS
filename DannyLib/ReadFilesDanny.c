@@ -131,20 +131,20 @@ void readDirectory(DIR *directory) {
         write(1, "Error reserva memoria stations!\n", 34);
         return;
     }
-
+    
     //Bucle per recòrrer tots els fitxers de la carpeta
     while ((entry = readdir(directory)) != NULL) {
-        countFiles++;
         //Ens saltem els fitxers '.' i '..' que sempre trobarem
-        if (countFiles > 2) {
+        if (countFiles >= 2) {
             //Si és un arxiu .txt, llegim la informació del fitxer dades
             if (strstr(entry->d_name, ".txt")) {
                 //Augmentem memòria dinàmica de la llista d'stations 
-                stations = (Station *) realloc(stations, sizeof(Station) * (countFiles - 1));
+                stations = (Station *) realloc(stations, sizeof(Station) * (countFiles-1));
 
                 //Guardem el nom del fitxer
-                stations[countFiles - 3].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
-                strcat(stations[countFiles - 3].fileName, entry->d_name);
+                stations[countFiles-2].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
+                strcat(stations[countFiles-2].fileName, entry->d_name);
+               
 
                 //Guardem el path del fitxer a llegir
                 strcat(textFilePath, config.pathFolder);
@@ -154,19 +154,25 @@ void readDirectory(DIR *directory) {
                 memmove(textFilePath, textFilePath + 1, strlen(textFilePath));
 
                 //Llegim la informació de l'estació
-                readEstation(stations, textFilePath, countFiles - 3);
+                readEstation(stations, textFilePath, countFiles-2);
 
                 //Eliminem el fitxer
+                //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
                 //remove(textFilePath);
 
                 //Reiniciem el path al fitxer .txt
                 textFilePath[0] = '\0';
             }
-        }
-    }
 
-    //Eliminem el comptador dels dos fitxers '.' i '..'
-    countFiles = countFiles - 2;
+            if (strstr(entry->d_name, ".jpg")) {
+                 countFiles--;
+            }
+
+        }
+        countFiles++;
+    }
+    countFiles -= 2;
+
     //Si no hi ha fitxers dins de la carpeta
     if (countFiles == 0) {
         write(1, "No files available\n", 20);
@@ -179,6 +185,7 @@ void readDirectory(DIR *directory) {
             write(1, stations[i].fileName, strlen(stations[i].fileName));
             write(1, "\n", 1);
         }
+        
         for (i = 0; i < countFiles; i++) {
             sprintf(aux, "\n%s\n", stations[i].fileName);
             write(1, aux, strlen(aux));

@@ -1,6 +1,6 @@
 #include "ConfigDanny.h"
 
-//Mètode per llegir el fitxer de configuració
+//Mètode per llegir el fitxer de configuració.
 void readConfigFile(Config *config, char *path) {
     int fdConfig;
 
