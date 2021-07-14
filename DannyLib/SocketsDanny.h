@@ -19,6 +19,13 @@
 #include <netinet/in.h>
 #include "ReadFilesDanny.h"
 
+//Estructura per guardar els paquets
+typedef struct {
+    char origen[14];
+    char tipus;
+    char dades[1000];
+} Packet;
+
 //Constants
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Client!\n"
 #define MSG_ERR_CONNECTION "Error en la connexió amb el servidor (Client)!\n"

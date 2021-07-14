@@ -2,7 +2,7 @@
 
 //Variable global
 Station *stations;
-int fdServer;
+int fdServer, fdServerWendy;
 
 //Mètode per connectar-se a un servidor a partir d'una IP i un Port
 int connectWithServer(char *ip, int port) {
@@ -37,7 +37,8 @@ int connectWithServer(char *ip, int port) {
     return fdSocket;
 }
 
-//Mètode per tancar el File Director del Servidor
+//Mètode per tancar els File Directors dels Servidors
 void closeConnectionServer() {
     close(fdServer);
+    close(fdServerWendy);
 }

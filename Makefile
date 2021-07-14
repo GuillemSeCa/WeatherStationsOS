@@ -1,4 +1,5 @@
-all: Danny Jack
+all: Danny Jack Wendy Borrar
+
 ReadFilesDanny.o: DannyLib/ReadFilesDanny.c DannyLib/ReadFilesDanny.h
 	gcc -c DannyLib/ReadFilesDanny.c -Wall -Wextra
 ConfigDanny.o: DannyLib/ConfigDanny.c DannyLib/ConfigDanny.h
@@ -22,3 +23,19 @@ Jack.o: JackLib/Jack.c JackLib/ConfigJack.h JackLib/SignalsJack.h JackLib/Socket
 	gcc -c JackLib/Jack.c -Wall -Wextra
 Jack: JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o JackLib/Jack.o
 	gcc JackLib/Jack.o JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o -o Jack
+
+ConfigWendy.o: WendyLib/ConfigWendy.c WendyLib/ConfigWendy.h
+	gcc -c WendyLib/ConfigWendy.c -Wall -Wextra
+SignalsWendy.o: WendyLib/SignalsWendy.c WendyLib/SignalsWendy.h
+	gcc -c WendyLib/SignalsWendy.c -Wall -Wextra
+SocketsWendy.o: WendyLib/SocketsWendy.c WendyLib/SocketsWendy.h
+	gcc -c WendyLib/SocketsWendy.c -Wall -Wextra
+Wendy.o: WendyLib/Wendy.c WendyLib/ConfigWendy.h WendyLib/SignalsWendy.h WendyLib/SocketsWendy.h
+	gcc -c WendyLib/Wendy.c -Wall -Wextra
+Wendy: WendyLib/ConfigWendy.o WendyLib/SignalsWendy.o WendyLib/SocketsWendy.o WendyLib/Wendy.o
+	gcc WendyLib/Wendy.o WendyLib/ConfigWendy.o WendyLib/SignalsWendy.o WendyLib/SocketsWendy.o -o Wendy -lpthread
+
+Borrar.o: Borr/Borrar.c
+	gcc -c Borr/Borrar.c -Wall -Wextra
+Borrar: Borr/Borrar.o
+	gcc Borr/Borrar.o -o Borrar

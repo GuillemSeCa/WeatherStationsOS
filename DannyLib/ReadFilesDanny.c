@@ -197,7 +197,8 @@ void readDirectory(DIR *directory) {
         }
     }
     //Enviem la informació al servidor
-    sendStationsToServer(stations, countFiles);
+    //TODO: descomentar
+    //sendStationsToServer(stations, countFiles);
     
     //Alliberem tota la memòria dinàmica
     free(pathFolder);

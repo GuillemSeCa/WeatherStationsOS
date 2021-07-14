@@ -26,7 +26,7 @@
 Config config;
 DIR *directory;
 Station *stations = NULL;
-int fdServer;
+int fdServer, fdServerWendy;
 
 //Mètode per eliminar la memòria dinàmica
 void freeMemory() {
@@ -45,7 +45,9 @@ void removeChar(char *str, char garbage) {
 
 //Mètode principal
 int main(int argc, char **argv) {
-    int numSend;
+    //TODO: descomentar
+    //int numSend;
+    Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
     if (argc != 2) {
@@ -62,11 +64,23 @@ int main(int argc, char **argv) {
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
     //Ens connectem al servidor Jack i enviem el nom de l'estació
-    write(1, MSG_JACK, strlen(MSG_JACK));
+    //TODO: descomentar
+    /*write(1, MSG_JACK, strlen(MSG_JACK));
     fdServer = connectWithServer(config.ipJack, config.portJack);
     numSend = strlen(config.stationName);
     write(fdServer, &numSend, sizeof(int));
-    write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));
+    write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));*/
+
+    //Ens connectem al servidor Wendy i enviem el nom de l'estació
+    //TODO: Afegit
+    fdServerWendy = connectWithServer("127.0.0.1", 8510);
+    //Enviem primer paquet per verificar la connexió
+    strcpy(paquet.origen, "DANNY"); 
+	paquet.origen[5] = '\0';
+    paquet.tipus = 'I';
+	strcpy(paquet.dades, config.stationName);
+	write(fdServerWendy, &paquet, sizeof(Packet));
+
 
     //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
