@@ -165,6 +165,7 @@ void readDirectory(DIR *directory) {
             }
 
             if (strstr(entry->d_name, ".jpg")) {
+                //TODO: S'ha de eliminar la foto? Preguntar als becaris!
                  countFiles--;
             }
 
@@ -185,7 +186,7 @@ void readDirectory(DIR *directory) {
             write(1, stations[i].fileName, strlen(stations[i].fileName));
             write(1, "\n", 1);
         }
-        
+
         for (i = 0; i < countFiles; i++) {
             sprintf(aux, "\n%s\n", stations[i].fileName);
             write(1, aux, strlen(aux));
