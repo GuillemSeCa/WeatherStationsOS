@@ -47,7 +47,7 @@ void removeChar(char *str, char garbage) {
 int main(int argc, char **argv) {
     //TODO: descomentar
     //int numSend;
-    Packet paquet;
+    //Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
     if (argc != 2) {
@@ -72,14 +72,14 @@ int main(int argc, char **argv) {
     write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));*/
 
     //Ens connectem al servidor Wendy i enviem el nom de l'estació
-    //TODO: Afegit
-    fdServerWendy = connectWithServer("127.0.0.1", 8510);
+    //TODO: Afegit i descomentar
+    /*fdServerWendy = connectWithServer("127.0.0.1", 8510);
     //Enviem primer paquet per verificar la connexió
     strcpy(paquet.origen, "DANNY"); 
 	paquet.origen[5] = '\0';
     paquet.tipus = 'I';
 	strcpy(paquet.dades, config.stationName);
-	write(fdServerWendy, &paquet, sizeof(Packet));
+	write(fdServerWendy, &paquet, sizeof(Packet));*/
 
 
     //Canviem el que es fa per defecte quan es rep una Alarma
