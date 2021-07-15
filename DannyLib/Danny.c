@@ -27,7 +27,7 @@
 //Variables globals
 int fdServer, fdServerWendy;
 Config config;
-DIR *directory;
+//DIR *directory;
 //Station *stations = NULL;
 
 //Mètode per eliminar un caràcter
@@ -54,39 +54,52 @@ int main(int argc, char **argv) {
 
     //Canviem el que fa per defecte el CTRL+C
     signal(SIGINT, ctrlCSignal);
+    //Canviem el que es fa per defecte quan es rep una Alarma
+    signal(SIGALRM, alarmaSignal);
 
     //Missatge benvinguda
     write(1, MSG_WELCOME, strlen(MSG_WELCOME));
 
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
+    
     //Ens connectem al servidor Jack
     write(1, MSG_CONNECTING_JACK, strlen(MSG_CONNECTING_JACK));
     fdServer = connectWithServer(config.ipJack, config.portJack);
     //Enviem primer paquet per verificar la connexió
-    strcpy(paquet.origen, "JACK"); 
-	paquet.origen[4] = '\0';
-    paquet.tipus = 'I';
-	strcpy(paquet.dades, config.stationName);
-	write(fdServer, &paquet, sizeof(Packet));
-
-    //Ens connectem al servidor Wendy
-    write(1, MSG_CONNECTING_WENDY, strlen(MSG_CONNECTING_WENDY));
-    fdServerWendy = connectWithServer(config.ipWendy, config.portWendy);
-    //Enviem primer paquet per verificar la connexió
     strcpy(paquet.origen, "DANNY"); 
 	paquet.origen[5] = '\0';
-    paquet.tipus = 'I';
+    paquet.tipus = 'C';
 	strcpy(paquet.dades, config.stationName);
-	write(fdServerWendy, &paquet, sizeof(Packet));
+	write(fdServer, &paquet, sizeof(Packet));
+    
+    //Escoltem resposta per saber si la connexió ha sigut correcte
+    read(fdServer, &paquet, sizeof(Packet));
+    if(paquet.tipus == 'O' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+        //Ens connectem al servidor Wendy
+        write(1, MSG_CONNECTING_WENDY, strlen(MSG_CONNECTING_WENDY));
+        fdServerWendy = connectWithServer(config.ipWendy, config.portWendy);
+        //Enviem primer paquet per verificar la connexió
+        strcpy(paquet.origen, "DANNY"); 
+        paquet.origen[5] = '\0';
+        paquet.tipus = 'C';
+        strcpy(paquet.dades, config.stationName);
+        write(fdServerWendy, &paquet, sizeof(Packet));
 
-    //Canviem el que es fa per defecte quan es rep una Alarma
-    signal(SIGALRM, alarmaSignal);
-    //Iniciem el programa
-    alarm(1);
-    //Bucle infinit fins que fem CTRL+C per anar llegint les dades i enviant-les
-    while (1) {
-        pause();
+        //Escoltem resposta per saber si la connexió ha sigut correcte
+        read(fdServerWendy, &paquet, sizeof(Packet));
+        if(paquet.tipus == 'O' && strcmp(paquet.origen, "WENDY") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+            //Iniciem el programa
+            alarm(1);
+            //Bucle infinit fins que fem CTRL+C per anar llegint les dades i enviant-les
+            while (1) {
+                pause();
+            }
+        } else {
+            write(1, "Error al connectar amb el servidor Wendy\n", 42);
+        }
+    } else {
+        write(1, "Error al connectar amb el servidor Jack\n", 41);
     }
 
     //Alliberem tota la memòria dinàmica restant i tanquem tot

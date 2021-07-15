@@ -1,4 +1,4 @@
-all: Danny Jack Wendy Borrar
+all: Danny Jack Wendy
 
 ReadFilesDanny.o: DannyLib/ReadFilesDanny.c DannyLib/ReadFilesDanny.h
 	gcc -c DannyLib/ReadFilesDanny.c -Wall -Wextra

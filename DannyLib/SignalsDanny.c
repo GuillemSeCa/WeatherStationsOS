@@ -2,7 +2,6 @@
 
 //Variables globals
 Config config;
-DIR *directory;
 
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal() {
@@ -13,7 +12,7 @@ void alarmaSignal() {
     write(1, ":\n", 3);
     //Llegeix els directoris
     write(1, "Testing...\n", 12);
-    readDirectory(directory);
+    readDirectory();
 
     //Reiniciem alarma
     signal(SIGALRM, alarmaSignal);

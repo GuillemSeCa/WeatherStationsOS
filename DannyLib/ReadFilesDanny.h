@@ -27,6 +27,11 @@ typedef struct {
     float precipitation;
 } Station;
 
+//Estructura per guardar les dades d'una imatge
+typedef struct {
+    char *fileName;
+} Image;
+
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char *readUntil(int fd, char end);
 
@@ -34,7 +39,7 @@ char *readUntil(int fd, char end);
 char *readUntilEnd(int fd, char end, int *endFile);
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
-void readDirectory(DIR *directory);
+void readDirectory();
 
 //Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
 void readStation(Station *station, char *path, int numStation);

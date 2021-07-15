@@ -2,7 +2,7 @@
 
 //Variable global
 Config config;
-int fdServer;
+int fdServer, fdServerWendy;
 
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char *readUntil(int fd, char end) {
@@ -76,7 +76,7 @@ void readEstation(Station *station, char *path, int numStation) {
 
 //Mètode per enviar la informació de les estacions al servidor Jack
 void sendStationsToServer(Station *stations, int numStations) {
-    int numSend, i=0;
+    /*int numSend, i=0;
 
     //Enviem el número d'estacions al servidor
     write(fdServer, &numStations, sizeof(int));
@@ -107,20 +107,24 @@ void sendStationsToServer(Station *stations, int numStations) {
         //precipitation
         write(fdServer, &stations[i].precipitation, sizeof(float));
     }
-    write(1, "Data sent\n", 11);
+    write(1, "Data sent\n", 11);*/
 }
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
-void readDirectory(DIR *directory) {
-    struct dirent *entry;
-    int countFiles = 0, i = 0;
-    char *pathFolder;
+void readDirectory() {
+    int countTextFiles = 0, countImageFiles = 0, i = 0;
+    char *pathFolder = NULL;
     Station *stations = NULL;
-    char numTextFilesFound[255], textFilePath[255], aux[255];
+    Image *images = NULL;
+    DIR *directory;
+    struct dirent *entry;
+    char textFilePath[255], aux[255];
     textFilePath[0] = '\0';
+    aux[0]= '\0';
 
     //Obrim el directori
     pathFolder = (char *) malloc(sizeof(char) * (strlen(config.pathFolder) + 1));
+    pathFolder[0] = '\0';
     strcat(pathFolder, ".");
     strcat(pathFolder, config.pathFolder);
     directory = opendir(pathFolder);
@@ -128,24 +132,31 @@ void readDirectory(DIR *directory) {
     //Guardem memòria per les stations i comprovem que s'hagi fet correctament
     stations = (Station *) malloc(sizeof(Station) * 1);
     if (stations == NULL) {
-        write(1, "Error reserva memoria stations!\n", 34);
+        write(1, "Error reserva memoria stations!\n", 33);
+        return;
+    }
+    
+    //Guardem memòria pel nom de les imatges i comprovem que s'hagi fet correctament
+    images = (Image *) malloc(sizeof(Image) * 1);
+    if (images == NULL) {
+        write(1, "Error reserva memoria nom imatges!\n", 36);
         return;
     }
     
     //Bucle per recòrrer tots els fitxers de la carpeta
     while ((entry = readdir(directory)) != NULL) {
         //Ens saltem els fitxers '.' i '..' que sempre trobarem
-        if (countFiles >= 2) {
+        if (countTextFiles >= 2) {
             //Si és un arxiu .txt, llegim la informació del fitxer dades
             if (strstr(entry->d_name, ".txt")) {
                 //Augmentem memòria dinàmica de la llista d'stations 
-                stations = (Station *) realloc(stations, sizeof(Station) * (countFiles-1));
+                stations = (Station *) realloc(stations, sizeof(Station) * (countTextFiles-1));
 
                 //Guardem el nom del fitxer
-                stations[countFiles-2].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
-                strcat(stations[countFiles-2].fileName, entry->d_name);
+                stations[countTextFiles-2].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
+                stations[countTextFiles-2].fileName[0] = '\0';
+                strcat(stations[countTextFiles-2].fileName, entry->d_name);
                
-
                 //Guardem el path del fitxer a llegir
                 strcat(textFilePath, config.pathFolder);
                 strcat(textFilePath, "/");
@@ -154,7 +165,7 @@ void readDirectory(DIR *directory) {
                 memmove(textFilePath, textFilePath + 1, strlen(textFilePath));
 
                 //Llegim la informació de l'estació
-                readEstation(stations, textFilePath, countFiles-2);
+                readEstation(stations, textFilePath, countTextFiles-2);
 
                 //Eliminem el fitxer
                 //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
@@ -166,28 +177,50 @@ void readDirectory(DIR *directory) {
 
             if (strstr(entry->d_name, ".jpg")) {
                 //TODO: S'ha de eliminar la foto? Preguntar als becaris!
-                 countFiles--;
+                //Guardem el nom de la imatge
+                countImageFiles++;
+                images = (Image *) realloc(images, sizeof(Image) * (countImageFiles+1));
+                images[countImageFiles-1].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
+                images[countImageFiles-1].fileName[0] = '\0';
+                strcat(images[countImageFiles-1].fileName, entry->d_name);
+
+                countTextFiles--;
             }
 
         }
-        countFiles++;
+        countTextFiles++;
     }
-    countFiles -= 2;
+    countTextFiles -= 2;
 
     //Si no hi ha fitxers dins de la carpeta
-    if (countFiles == 0) {
+    if (countTextFiles == 0 && countImageFiles == 0) {
         write(1, "No files available\n", 20);
-        //Si hi ha fitxers dins de la carpeta
     } else {
+        //Informem del nombre de fitxers trobats
+        sprintf(aux, "%d files found\n", (countTextFiles+countImageFiles));
+        write(1, aux, strlen(aux));
+    }
+
+    //Si hi ha imatges dins de la carpeta
+    if (countImageFiles > 0) {
+        //Mostrem el nom de les imatges
+        for (i = 0; i < countImageFiles; i++) {
+            write(1, images[i].fileName, strlen(images[i].fileName));
+            write(1, "\n", 1);
+        }
+
+        //TODO: Enviar imatges a Wendy
+    }
+
+    //Si hi ha fitxers de text dins de la carpeta
+    if (countTextFiles > 0) {
         //Mostrem tots els fitxers llegits amb la informació corresponent
-        sprintf(numTextFilesFound, "%d files found\n", countFiles);
-        write(1, numTextFilesFound, strlen(numTextFilesFound));
-        for (i = 0; i < countFiles; i++) {
+        for (i = 0; i < countTextFiles; i++) {
             write(1, stations[i].fileName, strlen(stations[i].fileName));
             write(1, "\n", 1);
         }
 
-        for (i = 0; i < countFiles; i++) {
+        for (i = 0; i < countTextFiles; i++) {
             sprintf(aux, "\n%s\n", stations[i].fileName);
             write(1, aux, strlen(aux));
             sprintf(aux, "%s\n", stations[i].date);
@@ -203,14 +236,27 @@ void readDirectory(DIR *directory) {
             sprintf(aux, "%.1f\n", stations[i].precipitation);
             write(1, aux, strlen(aux));
         }
+
+        //Enviem la informació al servidor
+        sendStationsToServer(stations, countTextFiles);
     }
-    //Enviem la informació al servidor
-    //TODO: descomentar
-    //sendStationsToServer(stations, countFiles);
     
-    //Alliberem tota la memòria dinàmica
+    //Alliberem tota la memòria dinàmica i tanquem tot
     free(pathFolder);
+    pathFolder = NULL;
+    for (i = 0; i < countTextFiles; i++) {
+        free(stations[i].fileName);
+        stations[i].fileName = NULL;
+    }
     free(stations);
     stations = NULL;
+    for (i = 0; i < countImageFiles; i++) {
+        free(images[i].fileName);
+        images[i].fileName = NULL;
+    }
+    free(images);
+    images = NULL;
+    rewinddir(directory);
     closedir(directory);
+    entry = NULL;
 }

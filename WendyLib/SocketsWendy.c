@@ -54,21 +54,30 @@ void serverRun() {
 
         //Llegim primer paquet, amb informació sobre l'estació
         read(fdSocketClient, &paquet, sizeof(Packet));
-        if(paquet.tipus == 'I' && strcmp(paquet.origen, "DANNY") == 0) {
+        //Si és correcte, mostrem missatge informatiu i enviem paquet de resposta
+        if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
             write(1, "New Connection: ", 17);
             write(1, paquet.dades, strlen(paquet.dades));
             write(1, "\n", 1);
-        }
 
-        //Creem nou thread per la nova connexió, passant-li el socket del client
-        estat = pthread_create(&threadId, NULL, connectionHandler, (void*)auxSocket);
-		//En cas d'error al crear el thread, mostrem missatge informatiu
-        if(estat < 0) {
-			write(1, MSG_ERR_CREATE, sizeof(MSG_ERR_CREATE));
-		}
-		
-		//Esperar acabar thread abans d'acceptar nou thread
-		pthread_join(threadId, NULL);
+            //Enviar paquet resposta
+            strcpy(paquet.origen, "WENDY"); 
+            paquet.origen[5] = '\0';
+            paquet.tipus = 'O';
+            strcpy(paquet.dades, "CONNEXIO OK");
+            paquet.dades[11] = '\0';
+            write(fdSocketClient, &paquet, sizeof(Packet));
+
+            //Creem nou thread per la nova connexió, passant-li el socket del client
+            estat = pthread_create(&threadId, NULL, connectionHandler, (void*)auxSocket);
+            //En cas d'error al crear el thread, mostrem missatge informatiu
+            if(estat < 0) {
+                write(1, MSG_ERR_CREATE, sizeof(MSG_ERR_CREATE));
+            }
+            
+            //Esperar acabar thread abans d'acceptar nou thread
+            pthread_join(threadId, NULL);
+        }
 	}
 	
     //En cas d'error al acceptar la nova connexió, mostrem missatge informatiu
