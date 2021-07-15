@@ -6,14 +6,20 @@
 - [ ] Arreglar que una foto peta
 - [ ] Dades d'una meteor es guardin be
 
-Bones, hem tingut molts problemes amb la fase 1, tot i que sembla que perfi ho hem aconseguit arreglar. Ens ha retrassat molt i no hem pogut avançar, però si tot i així poguessiu corregir com si fos la fase1, ho agrairiem molt, moltes gràcies!
-
 # Using the makefile
-Per tal de compilar les diferents dependencies del projecte s'haura de crida al make i ho compilara tot. 
+Per tal de compilar les diferents dependències del projecte s'haurà de cridar al Makefile: 
 ```sh
 $ make
 ```
-Per executar el Servidor Danny haurem de fer la crida següent
+Per executar el Servidor Jack haurem de fer la crida següent:
 ```sh
-$ Danny Config.dat
+$ Jack ConfigJack.dat
+```
+Per executar el Servidor Wendy haurem de fer la crida següent:
+```sh
+$ Wendy ConfigWendy.dat
+```
+Per executar els diferents Clients Danny haurem d'anar fent la crida següent:
+```sh
+$ Danny ConfigDanny.dat
 ```

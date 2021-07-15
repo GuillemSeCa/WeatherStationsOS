@@ -43,6 +43,9 @@ int main(int argc, char **argv) {
 
 	//Iniciem el servidor i esperem connexió dels Clients Danny
 	serverRun();
+
+	//Alliberem tota la memòria dinàmica restant i tanquem tot
+    closeServer();
 	
 	return 0;
 }

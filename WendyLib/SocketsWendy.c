@@ -55,7 +55,7 @@ void serverRun() {
         //Llegim primer paquet, amb informació sobre l'estació
         read(fdSocketClient, &paquet, sizeof(Packet));
         if(paquet.tipus == 'I' && strcmp(paquet.origen, "DANNY") == 0) {
-            write(1, "\nNew Connection: ", 17);
+            write(1, "New Connection: ", 17);
             write(1, paquet.dades, strlen(paquet.dades));
             write(1, "\n", 1);
         }
@@ -85,7 +85,7 @@ void serverRun() {
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
 	//Get the socket descriptor
-	int sock = *(int*)auxSocket;
+	/*int sock = *(int*)auxSocket;
 	int read_size;
 	char *message , client_message[2000];
 	
@@ -114,7 +114,7 @@ void *connectionHandler(void *auxSocket) {
 	}
 		
     //Alliberar i tancar variables utilitzades per aquesta connexió
-	close(sock);
+	close(sock);*/
 	free(auxSocket);
     auxSocket = NULL;
 	

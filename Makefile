@@ -22,7 +22,7 @@ SocketsJack.o: JackLib/SocketsJack.c JackLib/SocketsJack.h
 Jack.o: JackLib/Jack.c JackLib/ConfigJack.h JackLib/SignalsJack.h JackLib/SocketsJack.h
 	gcc -c JackLib/Jack.c -Wall -Wextra
 Jack: JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o JackLib/Jack.o
-	gcc JackLib/Jack.o JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o -o Jack
+	gcc JackLib/Jack.o JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o -o Jack -lpthread
 
 ConfigWendy.o: WendyLib/ConfigWendy.c WendyLib/ConfigWendy.h
 	gcc -c WendyLib/ConfigWendy.c -Wall -Wextra

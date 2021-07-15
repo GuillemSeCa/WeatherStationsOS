@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "ConfigDanny.h"
+#include "SocketsDanny.h"
 
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal();

@@ -19,19 +19,16 @@
 
 //Constants
 #define MSG_WELCOME "\nStarting Danny...\n"
-#define MSG_JACK "Connecting Jack...\n"
+#define MSG_CONNECTING_JACK "Connecting Jack...\n"
+#define MSG_CONNECTING_WENDY "Connecting Wendy...\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
+//TODO: Arreglar
 //Variables globals
+int fdServer, fdServerWendy;
 Config config;
 DIR *directory;
-Station *stations = NULL;
-int fdServer, fdServerWendy;
-
-//Mètode per eliminar la memòria dinàmica
-void freeMemory() {
-    free(stations);
-}
+//Station *stations = NULL;
 
 //Mètode per eliminar un caràcter
 void removeChar(char *str, char garbage) {
@@ -47,7 +44,7 @@ void removeChar(char *str, char garbage) {
 int main(int argc, char **argv) {
     //TODO: descomentar
     //int numSend;
-    //Packet paquet;
+    Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
     if (argc != 2) {
@@ -63,37 +60,38 @@ int main(int argc, char **argv) {
 
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
-    //Ens connectem al servidor Jack i enviem el nom de l'estació
-    //TODO: descomentar
-    /*write(1, MSG_JACK, strlen(MSG_JACK));
+    //Ens connectem al servidor Jack
+    write(1, MSG_CONNECTING_JACK, strlen(MSG_CONNECTING_JACK));
     fdServer = connectWithServer(config.ipJack, config.portJack);
-    numSend = strlen(config.stationName);
-    write(fdServer, &numSend, sizeof(int));
-    write(fdServer, config.stationName, sizeof(char) * strlen(config.stationName));*/
+    //Enviem primer paquet per verificar la connexió
+    strcpy(paquet.origen, "JACK"); 
+	paquet.origen[4] = '\0';
+    paquet.tipus = 'I';
+	strcpy(paquet.dades, config.stationName);
+	write(fdServer, &paquet, sizeof(Packet));
 
-    //Ens connectem al servidor Wendy i enviem el nom de l'estació
-    //TODO: Afegit i descomentar
-    /*fdServerWendy = connectWithServer("127.0.0.1", 8510);
+    //Ens connectem al servidor Wendy
+    write(1, MSG_CONNECTING_WENDY, strlen(MSG_CONNECTING_WENDY));
+    fdServerWendy = connectWithServer(config.ipWendy, config.portWendy);
     //Enviem primer paquet per verificar la connexió
     strcpy(paquet.origen, "DANNY"); 
 	paquet.origen[5] = '\0';
     paquet.tipus = 'I';
 	strcpy(paquet.dades, config.stationName);
-	write(fdServerWendy, &paquet, sizeof(Packet));*/
-
+	write(fdServerWendy, &paquet, sizeof(Packet));
 
     //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
     //Iniciem el programa
     alarm(1);
-    //Bucle infinit fins que fem CTRL+C
+    //Bucle infinit fins que fem CTRL+C per anar llegint les dades i enviant-les
     while (1) {
         pause();
     }
 
     //Alliberem tota la memòria dinàmica restant i tanquem tot
-    freeMemory();
     closeConnectionServer();
+    freeMemory();
 
     return 0;
 }

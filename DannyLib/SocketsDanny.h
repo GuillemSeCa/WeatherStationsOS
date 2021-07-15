@@ -33,5 +33,8 @@ typedef struct {
 //Mètode per connectar-se a un servidor a partir d'una IP i un Port
 int connectWithServer(char *ip, int port);
 
-//Mètode per tancar el File Director del Servidor
+//Mètode per tancar els File Descriptors del Servidor
 void closeConnectionServer();
+
+//Mètode per alliberar la memòria dinàmica
+void freeMemory();

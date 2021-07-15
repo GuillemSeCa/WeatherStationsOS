@@ -1,8 +1,10 @@
 #include "SocketsDanny.h"
 
-//Variable global
-Station *stations;
+//TODO: Arreglar
+//Variables globals
 int fdServer, fdServerWendy;
+Config config;
+//Station *stations;
 
 //Mètode per connectar-se a un servidor a partir d'una IP i un Port
 int connectWithServer(char *ip, int port) {
@@ -37,8 +39,22 @@ int connectWithServer(char *ip, int port) {
     return fdSocket;
 }
 
-//Mètode per tancar els File Directors dels Servidors
+//Mètode per tancar els File Descriptors dels Servidors
 void closeConnectionServer() {
     close(fdServer);
     close(fdServerWendy);
+}
+
+//TODO: Arreglar
+//Mètode per alliberar la memòria dinàmica
+void freeMemory() {
+    free(config.stationName);
+    config.stationName = NULL;
+    free(config.pathFolder);
+    config.pathFolder = NULL;
+    free(config.ipJack);
+    config.ipJack = NULL;
+    free(config.ipWendy);
+    config.ipWendy = NULL;
+    //free(stations);
 }

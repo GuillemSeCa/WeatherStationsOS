@@ -26,14 +26,18 @@
 typedef struct {
     char origen[14];
     char tipus;
+    //TODO: Canviar a memòria dinàmica
     char dades[1000];
 } Packet;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigWendy configWendy);
+
 //Mètode per iniciar el Servidor i esperar la connexió dels Clients Danny
 void serverRun();
+
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *fdSocketServer);
+
 //Mètode per tancar el servidor
 void closeServer();
