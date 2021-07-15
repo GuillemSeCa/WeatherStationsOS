@@ -34,8 +34,3 @@ Wendy.o: WendyLib/Wendy.c WendyLib/ConfigWendy.h WendyLib/SignalsWendy.h WendyLi
 	gcc -c WendyLib/Wendy.c -Wall -Wextra
 Wendy: WendyLib/ConfigWendy.o WendyLib/SignalsWendy.o WendyLib/SocketsWendy.o WendyLib/Wendy.o
 	gcc WendyLib/Wendy.o WendyLib/ConfigWendy.o WendyLib/SignalsWendy.o WendyLib/SocketsWendy.o -o Wendy -lpthread
-
-Borrar.o: Borr/Borrar.c
-	gcc -c Borr/Borrar.c -Wall -Wextra
-Borrar: Borr/Borrar.o
-	gcc Borr/Borrar.o -o Borrar
