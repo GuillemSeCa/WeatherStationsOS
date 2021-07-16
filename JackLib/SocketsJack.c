@@ -1,11 +1,15 @@
 #include "SocketsJack.h"
 
 //Variable global
-int fdSocketServer, fdSocketClient;
+int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
     struct sockaddr_in serverSocket;
+
+    //Inicialitzem variables per guardar els clients
+    countClients = 0;
+    clientPIDs = (int*)malloc(sizeof(int));
 
     //Obtenim el File Descriptor del Socket (sense connexió)
     fdSocketServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -40,6 +44,7 @@ void serverRun() {
     int *auxSocket, estat;
     struct sockaddr_in clientSocket;
     socklen_t c_len = sizeof(clientSocket);
+    pthread_t threadId;
     Packet paquet;
 
     //Anar acceptant noves connexions fins Ctrl+C
@@ -47,15 +52,16 @@ void serverRun() {
 	write(1, MSG_WAITING, sizeof(MSG_WAITING));
     //Bucle per anar realitzant accepts (crear nou file descriptor amb connexió activa)
 	while((fdSocketClient = accept(fdSocketServer, (struct sockaddr *)&clientSocket, &c_len))) {	
-        pthread_t threadId;
-		auxSocket = malloc(1);
+		countClients++;
+        auxSocket = malloc(1);
 		*auxSocket = fdSocketClient;
+        clientPIDs = (int*)realloc(clientPIDs, sizeof(int) * (countClients + 1));
 
         //Llegim primer paquet, amb informació sobre l'estació
         read(fdSocketClient, &paquet, sizeof(Packet));
         //Si és correcte, mostrem missatge informatiu i enviem paquet de resposta
         if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
-            write(1, "New Connection: ", 17);
+            write(1, "\nNew Connection: ", 17);
             write(1, paquet.dades, strlen(paquet.dades));
             write(1, "\n", 1);
 
@@ -75,7 +81,7 @@ void serverRun() {
             }
             
             //Esperar acabar thread abans d'acceptar nou thread
-            pthread_join(threadId, NULL);
+            //pthread_join(threadId, NULL); //Comentat perquè Jack accepti múltiples connexions alhora (servidor dedicat)
         }
 	}
 	
@@ -98,6 +104,9 @@ void *connectionHandler(void *auxSocket) {
     Station *stations;
     int sock = *(int*)auxSocket;
     aux[0] = '\0';
+
+    //Llegim el PID d'aquest Danny
+    read(sock, &clientPIDs[countClients - 1], sizeof(int));
 
     //Anem llegint les dades fins que Danny es desconnecti
     while (read(fdSocketClient, &paquet, sizeof(Packet))) {
@@ -174,6 +183,8 @@ void *connectionHandler(void *auxSocket) {
 
 //Mètode per tancar el servidor
 void closeServer() {
+    free(clientPIDs);
+    clientPIDs = NULL;
     close(fdSocketServer);
     close(fdSocketClient);
 

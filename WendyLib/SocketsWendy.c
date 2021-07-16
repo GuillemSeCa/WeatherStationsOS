@@ -1,12 +1,15 @@
 #include "SocketsWendy.h"
 
 //Variables global
-int fdSocketServer;
-int fdSocketClient;
+int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigWendy configWendy) {
     struct sockaddr_in serverSocket;
+
+    //Inicialitzem variables per guardar els clients
+    countClients = 0;
+    clientPIDs = (int*)malloc(sizeof(int));
 
     //Obtenim el File Descriptor del Socket (sense connexió)
     fdSocketServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -41,6 +44,7 @@ void serverRun() {
     int *auxSocket, estat;
     struct sockaddr_in clientSocket;
     socklen_t c_len = sizeof(clientSocket);
+    pthread_t threadId;
     Packet paquet;
 
     //Anar acceptar noves connexions fins Ctrl+C
@@ -48,9 +52,10 @@ void serverRun() {
 	write(1, MSG_WAITING, sizeof(MSG_WAITING));
     //Bucle per anar realitzant accepts (crear nou file descriptor amb connexió activa)
 	while((fdSocketClient = accept(fdSocketServer, (struct sockaddr *)&clientSocket, &c_len))) {	
-        pthread_t threadId;
+        countClients++;
 		auxSocket = malloc(1);
 		*auxSocket = fdSocketClient;
+        clientPIDs = (int*)realloc(clientPIDs, sizeof(int) * (countClients + 1));
 
         //Llegim primer paquet, amb informació sobre l'estació
         read(fdSocketClient, &paquet, sizeof(Packet));
@@ -76,7 +81,7 @@ void serverRun() {
             }
             
             //Esperar acabar thread abans d'acceptar nou thread
-            pthread_join(threadId, NULL);
+            //pthread_join(threadId, NULL); //Comentat perquè Wendy accepti múltiples connexions alhora (servidor dedicat)
         }
 	}
 	
@@ -93,6 +98,11 @@ void serverRun() {
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
+    int sock = *(int*)auxSocket;
+
+    //Llegim el PID d'aquest Danny
+    read(sock, &clientPIDs[countClients - 1], sizeof(int));
+
 	//Get the socket descriptor
 	/*int sock = *(int*)auxSocket;
 	int read_size;
@@ -132,6 +142,8 @@ void *connectionHandler(void *auxSocket) {
 
 //Mètode per tancar el servidor
 void closeServer() {
+    free(clientPIDs);
+    clientPIDs = NULL;
     close(fdSocketServer);
     close(fdSocketClient);
 

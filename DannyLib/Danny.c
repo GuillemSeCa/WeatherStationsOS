@@ -39,6 +39,7 @@ void removeChar(char *str, char garbage) {
 
 //Mètode principal
 int main(int argc, char **argv) {
+    int PID;
     Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
@@ -71,6 +72,9 @@ int main(int argc, char **argv) {
     //Escoltem resposta per saber si la connexió ha sigut correcte
     read(fdServer, &paquet, sizeof(Packet));
     if(paquet.tipus == 'O' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+        //Enviem PID d'aquest Danny
+        PID = getpid();
+        write(fdServer, &PID, sizeof(int));
         //Ens connectem al servidor Wendy
         write(1, MSG_CONNECTING_WENDY, strlen(MSG_CONNECTING_WENDY));
         fdServerWendy = connectWithServer(config.ipWendy, config.portWendy);
@@ -84,6 +88,10 @@ int main(int argc, char **argv) {
         //Escoltem resposta per saber si la connexió ha sigut correcte
         read(fdServerWendy, &paquet, sizeof(Packet));
         if(paquet.tipus == 'O' && strcmp(paquet.origen, "WENDY") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+            //Enviem PID d'aquest Danny
+            PID = getpid();
+            write(fdServerWendy, &PID, sizeof(int));
+
             //Iniciem el programa
             alarm(1);
             //Bucle infinit fins que fem CTRL+C per anar llegint les dades i enviant-les

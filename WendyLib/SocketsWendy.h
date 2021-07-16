@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "ConfigWendy.h"
+#include "SignalsWendy.h"
 
 //Constants
 #define MAX_CONNECTIONS 20

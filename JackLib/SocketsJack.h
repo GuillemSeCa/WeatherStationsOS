@@ -20,11 +20,12 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include "ConfigJack.h"
+#include "SignalsJack.h"
 
 //Constants
 #define MAX_CONNECTIONS 20
 #define MSG_JACK "$Jack:\n"
-#define MSG_WAITING "Waiting...\n"
+#define MSG_WAITING "Waiting..."
 #define MSG_RECEIVING "Receiving data...\n"
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor Jack!\n"
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor Jack)!\n"
