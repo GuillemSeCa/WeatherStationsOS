@@ -25,11 +25,7 @@
 //Constants
 #define MAX_CONNECTIONS 20
 #define MSG_JACK "$Jack:\n"
-<<<<<<< HEAD
 #define MSG_WAITING "Waiting..."
-=======
-#define MSG_WAITING "Waiting...\n"
->>>>>>> 269fe6ddfa32e5505d29554c3e144384edef9a1a
 #define MSG_RECEIVING "Receiving data...\n"
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor Jack!\n"
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor Jack)!\n"

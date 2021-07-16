@@ -1,11 +1,7 @@
 #include "SocketsJack.h"
 
 //Variable global
-<<<<<<< HEAD
 int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
-=======
-int fdSocketServer, fdSocketClient;
->>>>>>> 269fe6ddfa32e5505d29554c3e144384edef9a1a
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -109,12 +105,9 @@ void *connectionHandler(void *auxSocket) {
     int sock = *(int*)auxSocket;
     aux[0] = '\0';
 
-<<<<<<< HEAD
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
 
-=======
->>>>>>> 269fe6ddfa32e5505d29554c3e144384edef9a1a
     //Anem llegint les dades fins que Danny es desconnecti
     while (read(fdSocketClient, &paquet, sizeof(Packet))) {
         //Si Danny es desconnecta, sortim

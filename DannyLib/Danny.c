@@ -39,10 +39,7 @@ void removeChar(char *str, char garbage) {
 
 //Mètode principal
 int main(int argc, char **argv) {
-<<<<<<< HEAD
     int PID;
-=======
->>>>>>> 269fe6ddfa32e5505d29554c3e144384edef9a1a
     Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
