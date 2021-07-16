@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
     if (pid == 0) {
         //Child
         //lloydProcess();
+        raise(SIGKILL);
     }
     else if (pid > 0) {
         //Parent
