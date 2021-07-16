@@ -1,0 +1,16 @@
+Danny
+Jack
+Wendy
+/DannyLib/Danny.o
+/DannyLib/ConfigDanny.o
+/DannyLib/ReadFilesDanny.o
+/DannyLib/SignalsDanny.o
+/DannyLib/SocketsDanny.o
+/JackLib/Jack.o
+/JackLib/ConfigJack.o
+/JackLib/SignalsJack.o
+/JackLib/SocketsJack.o
+/WendyLib/Wendy.o
+/WendyLib/ConfigWendy.o
+/WendyLib/SignalsWendy.o
+/WendyLib/SocketsWendy.o
