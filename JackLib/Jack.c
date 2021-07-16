@@ -19,15 +19,10 @@
 //Constants
 #define MAX_CONNECTIONS 20
 #define MSG_BENVINGUDA "\nStarting Jack...\n\n"
-#define MSG_JACK "$Jack:\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
-//TODO: Arreglar
 //Variables globals
 ConfigJack configJack;
-//int fdClientDannys[20];
-//int counterDannys = -1;
-//Station *stations;
 
 int main(int argc, char **argv) {
     pid_t pid;
@@ -69,6 +64,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+//TODO: Fase 3
 /*
 void lloydProcess(){
     key_t key;

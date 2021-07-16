@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "ConfigDanny.h"
+#include "SocketsDanny.h"
 
 //Estructura per guardar les dades d'una estació
 typedef struct {

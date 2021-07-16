@@ -23,12 +23,9 @@
 #define MSG_CONNECTING_WENDY "Connecting Wendy...\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
 
-//TODO: Arreglar
 //Variables globals
 int fdServer, fdServerWendy;
 Config config;
-//DIR *directory;
-//Station *stations = NULL;
 
 //Mètode per eliminar un caràcter
 void removeChar(char *str, char garbage) {
@@ -42,8 +39,6 @@ void removeChar(char *str, char garbage) {
 
 //Mètode principal
 int main(int argc, char **argv) {
-    //TODO: descomentar
-    //int numSend;
     Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte

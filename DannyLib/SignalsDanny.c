@@ -2,6 +2,7 @@
 
 //Variables globals
 Config config;
+int fdServer, fdServerWendy;
 
 //Mètode per substituir el funcionament del signal Alarma
 void alarmaSignal() {
@@ -21,18 +22,15 @@ void alarmaSignal() {
 
 //Mètode per substituir el funcionament del signal CTRL+C
 void ctrlCSignal() {
-    //TODO: Arreglar
-    //Mostrem missatge nom estacio per pantalla
-    /*write(1, "\n$", 2);
-    write(1, config.stationName, strlen(config.stationName));
-    write(1, ":", 1);
+    Packet paquet;
+        
+    //Informem a Jack de la desconnexió
+    strcpy(paquet.origen, "DANNY"); 
+    paquet.origen[5] = '\0';
+    paquet.tipus = 'Q';
+    strcpy(paquet.dades, config.stationName);
+	write(fdServer, &paquet, sizeof(Packet));
 
-    //Desconnectem Danny, la connexió amb Jack i alliberem tota la memòria dinàmica restant
-    write(1, "\nDisconnecting Jack...", 23);
-    close(fdServer);
-    
-    free(stations);
-    stations = NULL;*/
     //Desconnectem Danny i alliberem tota la memòria dinàmica restant
     write(1, "\nDisconnecting Danny...", 24);
     closeConnectionServer();

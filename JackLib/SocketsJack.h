@@ -25,6 +25,7 @@
 #define MAX_CONNECTIONS 20
 #define MSG_JACK "$Jack:\n"
 #define MSG_WAITING "Waiting...\n"
+#define MSG_RECEIVING "Receiving data...\n"
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor Jack!\n"
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor Jack)!\n"
 #define MSG_ERR_CREATE "Error al crear un nou thread (Servidor Jack)!\n"
@@ -45,7 +46,6 @@ typedef struct {
 typedef struct {
     char origen[14];
     char tipus;
-    //TODO: Canviar a memòria dinàmica
     char dades[1000];
 } Packet;
 
