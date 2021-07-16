@@ -1,8 +1,9 @@
 #include "ReadFilesDanny.h"
 
 //Variable global
-Config config;
 int fdServer, fdServerWendy;
+Config config;
+Station *stations;
 
 //Mètode per llegir un fitxer de text utilitzant FD fins a cert caràcter
 char *readUntil(int fd, char end) {
@@ -50,7 +51,7 @@ char *readUntilEnd(int fd, char end, int *endFile) {
 }
 
 //Mètode per llegir la informació d'una estació, que es troba en un fitxer .txt
-void readEstation(Station *station, char *path, int numStation) {
+void readStation(Station *station, char *path, int numStation) {
     int fdStation;
 
     //Obtenim el file descriptor del fitxer de configuració
@@ -61,7 +62,6 @@ void readEstation(Station *station, char *path, int numStation) {
         write(1, "Error lectura de fitxer Station!\n", 34);
         //Si s'ha obtingut correctament
     } else {
-        //Llegim la informació de l'estació
         station[numStation].date = readUntil(fdStation, '\n');
         station[numStation].hour = readUntil(fdStation, '\n');
         station[numStation].temperature = atof(readUntil(fdStation, '\n'));
@@ -76,15 +76,21 @@ void readEstation(Station *station, char *path, int numStation) {
 
 //Mètode per enviar la informació de les estacions al servidor Jack
 void sendStationsToServer(Station *stations, int numStations) {
-    /*int numSend, i=0;
+    int i, numSend;
+    Packet paquet;
+
+    //Enviem paquet a Jack per les dades
+    write(1, "\nSending data...\n", 17);
+    strcpy(paquet.origen, "DANNY"); 
+	paquet.origen[5] = '\0';
+    paquet.tipus = 'D';
+	strcpy(paquet.dades, config.stationName);
+	write(fdServer, &paquet, sizeof(Packet));
 
     //Enviem el número d'estacions al servidor
     write(fdServer, &numStations, sizeof(int));
 
     //Iterem totes les estacions i anem enviant la informació
-    write(1, "\nSending data...\n", 17);
-
-    printf("STATION NAME SEND DATA: %s\n", stations[i].fileName);
     for(i = 0; i < numStations; i++) {
         //fileName
         numSend = strlen(stations[i].fileName);
@@ -107,14 +113,23 @@ void sendStationsToServer(Station *stations, int numStations) {
         //precipitation
         write(fdServer, &stations[i].precipitation, sizeof(float));
     }
-    write(1, "Data sent\n", 11);*/
+
+    //Confirmem que s'hagi enviat correctament les dades
+    read(fdServer, &paquet, sizeof(Packet));
+    if(paquet.tipus == 'B' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "DADES OK") == 0) {
+        write(1, "Data sent\n", 11);
+    } else {
+        write(1, "Error al enviar les dades al Servidor Jack!\n", 45);
+        if(paquet.tipus == 'K' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "DADES KO") == 0) {
+            write(1, "Dades erronies!\n", 17);
+        }
+    }
 }
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectory() {
     int countTextFiles = 0, countImageFiles = 0, i = 0;
     char *pathFolder = NULL;
-    Station *stations = NULL;
     Image *images = NULL;
     DIR *directory;
     struct dirent *entry;
@@ -165,7 +180,7 @@ void readDirectory() {
                 memmove(textFilePath, textFilePath + 1, strlen(textFilePath));
 
                 //Llegim la informació de l'estació
-                readEstation(stations, textFilePath, countTextFiles-2);
+                readStation(stations, textFilePath, countTextFiles-2);
 
                 //Eliminem el fitxer
                 //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
@@ -175,8 +190,8 @@ void readDirectory() {
                 textFilePath[0] = '\0';
             }
 
+            //Si és una imatge
             if (strstr(entry->d_name, ".jpg")) {
-                //TODO: S'ha de eliminar la foto? Preguntar als becaris!
                 //Guardem el nom de la imatge
                 countImageFiles++;
                 images = (Image *) realloc(images, sizeof(Image) * (countImageFiles+1));
@@ -247,6 +262,10 @@ void readDirectory() {
     for (i = 0; i < countTextFiles; i++) {
         free(stations[i].fileName);
         stations[i].fileName = NULL;
+        free(stations[i].date);
+        stations[i].date = NULL;
+        free(stations[i].hour);
+        stations[i].hour = NULL;
     }
     free(stations);
     stations = NULL;

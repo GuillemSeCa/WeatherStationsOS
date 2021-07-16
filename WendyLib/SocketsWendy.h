@@ -26,7 +26,6 @@
 typedef struct {
     char origen[14];
     char tipus;
-    //TODO: Canviar a memòria dinàmica
     char dades[1000];
 } Packet;
 

@@ -1,9 +1,7 @@
 #include "SocketsJack.h"
 
 //Variable global
-Station *stations;
-int fdSocketServer;
-int fdSocketClient;
+int fdSocketServer, fdSocketClient;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -37,20 +35,14 @@ int launchServer(ConfigJack configJack) {
     return 0;
 }
 
-//TODO: Arreglar
 //Mètode per iniciar el Servidor i esperar la connexió dels Clients Danny
 void serverRun() {
     int *auxSocket, estat;
     struct sockaddr_in clientSocket;
     socklen_t c_len = sizeof(clientSocket);
     Packet paquet;
-    /*char dataReceivedChar[100];
-    int numChar, numStations, i;
-    char str[200];
-    struct sockaddr_in c_addr;
-    socklen_t c_len = sizeof(c_addr);*/
 
-    //Anar acceptar noves connexions fins Ctrl+C
+    //Anar acceptant noves connexions fins Ctrl+C
 	write(1, MSG_JACK, sizeof(MSG_JACK));
 	write(1, MSG_WAITING, sizeof(MSG_WAITING));
     //Bucle per anar realitzant accepts (crear nou file descriptor amb connexió activa)
@@ -96,100 +88,84 @@ void serverRun() {
     close(fdSocketClient);
     free(auxSocket);
     auxSocket = NULL;
-    
-    //Bucle infinit per anar acceptant connexions fins CTRL+C
-    /*while (1) {
-        write(1, MSG_JACK, sizeof(MSG_JACK));
-        write(1, "Waiting...\n", sizeof(char)*12);
-        counterDannys++;
-        
-        //Creem un nou File Descriptor amb connexió activa 
-        fdClientDannys[counterDannys] = accept(fdSocket, (void *) &c_addr, &c_len);
-
-        //Llegim el nom de l'estació
-        read(fdClientDannys[counterDannys], &numChar, sizeof(int));
-        read(fdClientDannys[counterDannys], &dataReceivedChar, sizeof(char)*numChar);
-        dataReceivedChar[numChar] = '\0';
-        sprintf(str, "New Connection: %s\n", dataReceivedChar);
-        write(1, str, strlen(str));
-
-        //Llegim quantes estacions rebrem i reservem la memòria dinàmica necessària
-        read(fdClientDannys[counterDannys], &numStations, sizeof(int));
-        stations = (Station *) malloc(sizeof(Station) * numStations);
-        
-        //Llegim totes les estacions rebudes
-        for(i = 0; i < numStations; i++) {
-            //fileName
-            read(fdClientDannys[counterDannys], &numChar, sizeof(int));
-            stations[i].fileName = (char *) malloc(sizeof(char) * numChar);
-            read(fdClientDannys[counterDannys], stations[i].fileName, sizeof(char)*numChar);
-            stations[i].fileName[numChar] = '\0';
-            //date
-            read(fdClientDannys[counterDannys], &numChar, sizeof(int));
-            stations[i].date = (char *) malloc(sizeof(char) * numChar);
-            read(fdClientDannys[counterDannys], stations[i].date, sizeof(char)*numChar);
-            stations[i].date[numChar] = '\0';
-            //hour
-            read(fdClientDannys[counterDannys], &numChar, sizeof(int));
-            stations[i].hour = (char *) malloc(sizeof(char) * numChar);
-            read(fdClientDannys[counterDannys], stations[i].hour, sizeof(char)*numChar);
-            stations[i].hour[numChar] = '\0';
-            //temperature
-            read(fdClientDannys[counterDannys], &stations[i].temperature, sizeof(float));
-            //humidity
-            read(fdClientDannys[counterDannys], &stations[i].humidity, sizeof(int));
-            //atmosphericPressure
-            read(fdClientDannys[counterDannys], &stations[i].atmosphericPressure, sizeof(float));
-            //precipitation
-            read(fdClientDannys[counterDannys], &stations[i].precipitation, sizeof(float));
-            
-            printf("Estacio rebuda: %s\n %s\n %s\n %f %d %f %f\n", stations[i].fileName, stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
-        }
-        //Alliberem memòria dinàmica
-        free(stations);
-        stations = NULL;
-        
-    }
-
-    //Tanquem els File Descriptors dels Clients per tancar la connexió activa
-    for(i = 0; i < counterDannys; i++) {
-        close(fdClientDannys[i]);
-    }*/
 }
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
-	//Get the socket descriptor
-	/*int sock = *(int*)auxSocket;
-	int read_size;
-	char *message , client_message[2000];
-	
-	//Send some messages to the client
-	message = "Greetings! I am your connection handler\n";
-	write(sock , message , strlen(message));
-	
-	message = "Now type something and i shall repeat what you type \n";
-	write(sock , message , strlen(message));
-	
-	//Receive a message from client
-	while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
-	{
-		//Send the message back to client
-		write(sock , client_message , strlen(client_message));
-	}
-	
-	if(read_size == 0)
-	{
-		puts("Client disconnected");
-		fflush(stdout);
-	}
-	else if(read_size == -1)
-	{
-		perror("recv failed");
-	}
+    int numStations, numChar, i;
+    char aux[2000];
+    Packet paquet;
+    Station *stations;
+    int sock = *(int*)auxSocket;
+    aux[0] = '\0';
+
+    //Anem llegint les dades fins que Danny es desconnecti
+    while (read(fdSocketClient, &paquet, sizeof(Packet))) {
+        //Si Danny es desconnecta, sortim
+        if(paquet.tipus == 'Q' && strcmp(paquet.origen, "DANNY") == 0) {
+            break;
+        }
+
+        //Llegim quantes estacions rebrem i reservem la memòria dinàmica necessària
+        write(1, "\n", 1);
+        write(1, MSG_JACK, sizeof(MSG_JACK));
+        write(1, MSG_RECEIVING, sizeof(MSG_RECEIVING));
+        read(sock, &numStations, sizeof(int));
+        stations = (Station *) malloc(sizeof(Station) * numStations);
+
+        //Llegim totes les estacions rebudes
+        for(i = 0; i < numStations; i++) {
+            //FileName
+            read(sock, &numChar, sizeof(int));
+            stations[i].fileName = (char *) malloc(sizeof(char) * numChar);
+            read(sock, stations[i].fileName, sizeof(char)*numChar);
+            stations[i].fileName[numChar] = '\0';
+            //Date
+            read(sock, &numChar, sizeof(int));
+            stations[i].date = (char *) malloc(sizeof(char) * numChar);
+            read(sock, stations[i].date, sizeof(char)*numChar);
+            stations[i].date[numChar] = '\0';
+            //Hour
+            read(sock, &numChar, sizeof(int));
+            stations[i].hour = (char *) malloc(sizeof(char) * numChar);
+            read(sock, stations[i].hour, sizeof(char)*numChar);
+            stations[i].hour[numChar] = '\0';
+            //Temperature
+            read(sock, &stations[i].temperature, sizeof(float));
+            //Humidity
+            read(sock, &stations[i].humidity, sizeof(int));
+            //AtmosphericPressure
+            read(sock, &stations[i].atmosphericPressure, sizeof(float));
+            //Precipitation
+            read(sock, &stations[i].precipitation, sizeof(float));
+            
+            //Mostrem la informació del paquet
+            paquet.dades[strlen(paquet.dades)] = '\0';
+            sprintf(aux, "\n%s\n%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", paquet.dades, stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
+            write(1, aux, strlen(aux));
+        }
+
+        //Informem a Danny de que les dades són correctes
+        strcpy(paquet.origen, "JACK"); 
+        paquet.origen[4] = '\0';
+        paquet.tipus = 'B';
+        strcpy(paquet.dades, "DADES OK");
+        paquet.dades[8] = '\0';
+        write(fdSocketClient, &paquet, sizeof(Packet));
+    }
 		
     //Alliberar i tancar variables utilitzades per aquesta connexió
-	close(sock);*/
+	close(sock);
+    for(i = 0; i < numStations; i++) {
+        free(stations[i].fileName);
+        stations[i].fileName = NULL;
+        free(stations[i].date);
+        stations[i].date = NULL;
+        free(stations[i].hour);
+        stations[i].hour = NULL;
+    }
+    free(stations);
+    stations = NULL;
 	free(auxSocket);
     auxSocket = NULL;
 	
