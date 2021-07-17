@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {
     char origen[14];
     char tipus;
-    char dades[1000];
+    char dades[100];
 } Packet;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
