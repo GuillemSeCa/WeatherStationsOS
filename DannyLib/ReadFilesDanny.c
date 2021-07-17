@@ -261,14 +261,20 @@ void readDirectory() {
             printf("DEBUG: paquet.dades = %s", paquet.dades);
             //Enviem el paquet amb Name#Size#MD5
             write(fdServerWendy, &paquet, sizeof(Packet)); //Paquet mida#nom#md5sum
-            //MOSTRA PAQUET.dades: "DANNY#I#1200#aaabbbaaabbbaaabbbaaabbbaaabbbaa"
+            //MOSTRA PAQUET.dades: "DANNY#I#1200#aaabbbaaabbbaaabbbaaabbbaaabbbaa"            
+            */
 
-            
-            //TODO: enviar la imatge en paquets ANEX
+
+           //TODO: enviar la imatge en paquets ANEX
             paquet.tipus = 'F';
-            while(read(imatgeToSend, &paquet.dades, sizeof(char)*1000) > 0){
+            while(read(imatgeToSend, &paquet.dades, sizeof(char)*100) > 0 && size > 100) {
                 write(fdServerWendy, &paquet, sizeof(Packet));
-            }*/
+                
+                size -= 100;
+            }
+            printf("DEBUG: %d\n", size);
+            read(imatgeToSend, &paquet.dades, sizeof(char)*size);
+            write(fdServerWendy, &paquet, sizeof(Packet));
 
             //TODO: Controlar si paquet és més petit que 1000 (l'últim si no és múltiple)
             //TODO: Llegir paquet per l'altre costat

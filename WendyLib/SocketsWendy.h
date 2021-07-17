@@ -8,6 +8,8 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -36,6 +38,7 @@ typedef struct {
     char *fileName;
     int size;
     char *md5sum;
+    char * data;
 } Image;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
