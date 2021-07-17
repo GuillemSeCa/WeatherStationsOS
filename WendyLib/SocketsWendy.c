@@ -61,7 +61,7 @@ void serverRun() {
         read(fdSocketClient, &paquet, sizeof(Packet));
         //Si és correcte, mostrem missatge informatiu i enviem paquet de resposta
         if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
-            write(1, "New Connection: ", 17);
+            write(1, "\nNew Connection: ", 18);
             write(1, paquet.dades, strlen(paquet.dades));
             write(1, "\n", 1);
 
