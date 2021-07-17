@@ -63,7 +63,9 @@ void readStation(Station *station, char *path, int numStation) {
         //Si s'ha obtingut correctament
     } else {
         station[numStation].date = readUntil(fdStation, '\n');
+        station[numStation].date[strlen(station[numStation].date)-1] = '\0';
         station[numStation].hour = readUntil(fdStation, '\n');
+        station[numStation].hour[strlen(station[numStation].hour)-1] = '\0';
         station[numStation].temperature = atof(readUntil(fdStation, '\n'));
         station[numStation].humidity = atoi(readUntil(fdStation, '\n'));
         station[numStation].atmosphericPressure = atof(readUntil(fdStation, '\n'));
@@ -78,6 +80,7 @@ void readStation(Station *station, char *path, int numStation) {
 void sendStationsToServer(Station *stations, int numStations) {
     int i, numSend;
     Packet paquet;
+    char aux[1500];
 
     //Enviem paquet a Jack per les dades
     write(1, "\nSending data...\n", 17);
@@ -112,6 +115,9 @@ void sendStationsToServer(Station *stations, int numStations) {
         write(fdServer, &stations[i].atmosphericPressure, sizeof(float));
         //precipitation
         write(fdServer, &stations[i].precipitation, sizeof(float));
+
+        sprintf(aux, "%s#%s#%.1f#%d#%.1f#%.1f", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
+        aux[strlen(aux)] = '\0';
     }
 
     //Confirmem que s'hagi enviat correctament les dades
