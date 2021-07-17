@@ -36,6 +36,7 @@ typedef struct {
     char *fileName;
     int size;
     char *md5sum;
+    char * data;
 } Image;
 
 //Mètode per configurar el servidor abans d'iniciar-lo

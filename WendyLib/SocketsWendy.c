@@ -98,11 +98,12 @@ void serverRun() {
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
-    int numImages, i, j, x, tipusDadaActual, error = 0;
+    int numImages, i, j, x, tipusDadaActual, error = 0, pos=0, k=0;
     char aux[20];
     int sock = *(int*)auxSocket;
     Packet paquet;
     Image *images;
+    int size = 0;
     aux[0] = '\0';
 
     //Llegim el PID d'aquest Danny
@@ -127,7 +128,9 @@ void *connectionHandler(void *auxSocket) {
 
         //Anem llegint paquets, tractem i preparem les dades, i les guardem
         for (i = 0; i < numImages; i++) {
+            //Lectura de el paquet inicial "Name#Size#MD5"
             read(sock, &paquet, sizeof(Packet));
+
             //Reservem memòria necessària
             images[i].fileName = (char *) malloc(sizeof(char) * 31);
             images[i].md5sum = (char *) malloc(sizeof(char) * 33);
@@ -150,6 +153,7 @@ void *connectionHandler(void *auxSocket) {
                                 break;
                             case 1:
                                 aux[x] = paquet.dades[j];
+                                aux[x+1] = '\0';
                                 if(x > 20) {
                                     error = 1;
                                 }
@@ -168,7 +172,7 @@ void *connectionHandler(void *auxSocket) {
                     }
                 }
                 if (error == 0) {
-                    aux[strlen(aux)] = '\0';
+                    //aux[strlen(aux)] = '\0';
                     images[i].fileName[strlen(images[i].fileName)] = '\0';
                     images[i].md5sum[31] = '\0';
                     images[i].size = atoi(aux);
@@ -180,7 +184,38 @@ void *connectionHandler(void *auxSocket) {
             } else {
                 error = 1;
             }
+
+
+            //Llegim la imatge i la guardem
+            images[i].data = (char *) malloc(sizeof(char) * images[i].size+1);
+            images[i].data[0] = '\0';
+            
+            size = images[i].size;
+            printf("DEBUG: SIZE = %d\n", size);
+            pos = 0;
+
+            int delete=0;
+            while(size > 100){
+                read(sock, &paquet, sizeof(Packet));
+                for(k=0; k < 100; k++){
+                    images[i].data[pos] = paquet.dades[k];
+                    images[i].data[pos+1] = '\0';
+                    pos++;
+                }
+                size -= 100;
+                delete++;
+            }
+            printf("DEBUG: LEFT %d\n", size);
+            printf("DEBUG: STEPS %d\n", delete);
+            read(sock, &paquet, sizeof(Packet));
+            paquet.dades[size] = '\0';
+            strcat(images[i].data, paquet.dades);
+            
+    
+
         }
+
+
 
         //Informem a Danny de que les dades són correctes o incorrectes
         if (error == 0) {
@@ -206,6 +241,8 @@ void *connectionHandler(void *auxSocket) {
             images[i].fileName = NULL;
             free(images[i].md5sum);
             images[i].md5sum = NULL;
+            free(images[i].data);
+            images[i].data = NULL;
         }
         free(images);
         images = NULL;
