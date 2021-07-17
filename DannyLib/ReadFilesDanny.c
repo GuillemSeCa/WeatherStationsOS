@@ -144,6 +144,7 @@ void readDirectory() {
     Image *images = NULL;
     int imatgeToSend;
     int size = 0;
+    char str[255];
     off_t currentPos;
     textFilePath[0] = '\0';
     aux[0]= '\0';
@@ -261,16 +262,25 @@ void readDirectory() {
             currentPos = lseek(imatgeToSend, (size_t)0, SEEK_CUR);
             size = lseek(imatgeToSend, (size_t)0, SEEK_END);
             lseek(imatgeToSend, currentPos, SEEK_SET);
+            sprintf(str, "#%d#", size);
+            strcat(paquet.dades, str);
             
             printf("SIZE OF IMAGE = %d bytes\n", size);
-
-            
 
 
             //TODO: Calculem el MD5 de la imatge i la guardem en una variable
             strcpy(md5sumCommand, "md5sum \0");
             strcat(md5sumCommand, imageFilePath);
+            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa");
+            printf("DEBUG: paquet.dades = %s", paquet.dades);
+            //Enviem el paquet amb Name#Size#MD5
+            write(fdServerWendy, &paquet, sizeof(Packet));
+            
             //TODO: enviar la imatge en paquets ANEX
+            paquet.tipus = 'F';
+            while(read(imatgeToSend, &paquet.dades, sizeof(char)*1000) > 0){
+                write(fdServerWendy, &paquet, sizeof(Packet));
+            }
 
             
            
