@@ -271,10 +271,12 @@ void readDirectory() {
             //TODO: Calculem el MD5 de la imatge i la guardem en una variable
             strcpy(md5sumCommand, "md5sum \0");
             strcat(md5sumCommand, imageFilePath);
-            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa");
+            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa"); //Copiem md5 al paquet
             printf("DEBUG: paquet.dades = %s", paquet.dades);
             //Enviem el paquet amb Name#Size#MD5
-            write(fdServerWendy, &paquet, sizeof(Packet));
+            write(fdServerWendy, &paquet, sizeof(Packet)); //Paquet mida#nom#md5sum
+            //MOSTRA PAQUET.dades: "DANNY#I#1200#aaabbbaaabbbaaabbbaaabbbaaabbbaa"
+
             
             //TODO: enviar la imatge en paquets ANEX
             paquet.tipus = 'F';
@@ -282,7 +284,9 @@ void readDirectory() {
                 write(fdServerWendy, &paquet, sizeof(Packet));
             }
 
-            
+            //TODO: Controlar si paquet és més petit que 1000 (l'últim si no és múltiple)
+            //TODO: Llegir paquet per l'altre costat
+            //TODO: enviar paquest des de Wendy de confirmacio
            
 
             close(imatgeToSend);

@@ -100,6 +100,33 @@ void serverRun() {
 void *connectionHandler(void *auxSocket) {
     int sock = *(int*)auxSocket;
 
+     //TODO: Lectura dels paquets del client de les imatges
+    Paquet paquet;
+    int size = 0;
+    int newFile;
+    char md5sum[33]; //un extra per el '\0'
+    
+    
+    
+    read(sock, &paquet, sizeof(Paquet));
+
+    //TODO: definir la size
+    //size = ...
+
+    //TODO: definir el nom del fitxer
+
+    //TODO: definir el md5sum
+    if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
+        newFile = open("test.png", O_WRONLY | O_CREAT);
+        
+        write(newFile, paquet.dades, strlen(paquet.dades));
+
+        close(newFile);
+    }
+
+
+    
+
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
 
