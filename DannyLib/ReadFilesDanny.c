@@ -119,7 +119,7 @@ void sendStationsToServer(Station *stations, int numStations) {
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectory() {
     int countTextFiles = 0, countImageFiles = 0, i = 0, size = 0, imatgeToSend;
-    char textFilePath[255], aux[255]/*, md5sumCommand[255]*/, str[255], imageFilePath[255];
+    char textFilePath[255], aux[255], str[255], imageFilePath[255];
     char *pathFolder = NULL;
     Packet paquet;
     off_t currentPos;
@@ -190,7 +190,7 @@ void readDirectory() {
                 images[countImageFiles-1].fileName = (char *) malloc(sizeof(char) * strlen(entry->d_name));
                 images[countImageFiles-1].fileName[0] = '\0';
                 strcat(images[countImageFiles-1].fileName, entry->d_name);
-
+                
                 countTextFiles--;
             }
 
@@ -254,31 +254,22 @@ void readDirectory() {
             strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa\0");
             write(fdServerWendy, &paquet, sizeof(Packet));
             
-            //TODO: Calculem el MD5 de la imatge i la guardem en una variable
-            /*strcpy(md5sumCommand, "md5sum \0");
-            strcat(md5sumCommand, imageFilePath);
-        
-            printf("DEBUG: paquet.dades = %s", paquet.dades);
-            //Enviem el paquet amb Name#Size#MD5
-            write(fdServerWendy, &paquet, sizeof(Packet)); //Paquet mida#nom#md5sum
-            //MOSTRA PAQUET.dades: "DANNY#I#1200#aaabbbaaabbbaaabbbaaabbbaaabbbaa"            
-            */
-
-
-           //TODO: enviar la imatge en paquets ANEX
+           //Enviar la imatge en paquets dividits
             paquet.tipus = 'F';
             while(read(imatgeToSend, &paquet.dades, sizeof(char)*100) > 0 && size > 100) {
                 write(fdServerWendy, &paquet, sizeof(Packet));
-                
                 size -= 100;
             }
+            //Enviar últim paquet amb les dades restants (menys de 100 bytes)
             read(imatgeToSend, &paquet.dades, sizeof(char)*size);
             write(fdServerWendy, &paquet, sizeof(Packet));
 
-            //TODO: Controlar si paquet és més petit que 1000 (l'últim si no és múltiple)
-            //TODO: Llegir paquet per l'altre costat
-            //TODO: enviar paquest des de Wendy de confirmacio*/
-
+            //Tanquem i eliminem la imatge
+            imageFilePath[strlen(imageFilePath)] = '\0';
+            memmove(imageFilePath, imageFilePath + 2, strlen(imageFilePath));
+            //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
+            //remove(imageFilePath);
+            imageFilePath[0] = '\0';
             close(imatgeToSend);
         }
 

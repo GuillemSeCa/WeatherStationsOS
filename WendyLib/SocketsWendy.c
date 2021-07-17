@@ -98,16 +98,11 @@ void serverRun() {
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
-    int numImages, i, j, x, tipusDadaActual, error = 0, pos=0, k=0;
-    char aux[20];
+    int imatgefd, numImages, i, j, x, tipusDadaActual, error = 0, pos = 0, k = 0, delete = 0, size = 0;
+    char aux[20], pathImage[255];
     int sock = *(int*)auxSocket;
     Packet paquet;
-    Image images;
-    int size = 0;
-    //TODO: Revisar si cal crear el directori desde el codi
-    //struct stat st = {0};
-    int imatgefd;
-    char pathImage[255];
+    Image image;
     aux[0] = '\0';
 
     //Llegim el PID d'aquest Danny
@@ -128,7 +123,6 @@ void *connectionHandler(void *auxSocket) {
         write(1, paquet.dades, strlen(paquet.dades));
         write(1, "\n", 1);
         read(sock, &numImages, sizeof(int));
-        //images = (Image *) malloc(sizeof(Image) * numImages);
 
         //Anem llegint paquets, tractem i preparem les dades, i les guardem
         for (i = 0; i < numImages; i++) {
@@ -136,8 +130,8 @@ void *connectionHandler(void *auxSocket) {
             read(sock, &paquet, sizeof(Packet));
 
             //Reservem memòria necessària
-            images.fileName = (char *) malloc(sizeof(char) * 31);
-            images.md5sum = (char *) malloc(sizeof(char) * 33);
+            image.fileName = (char *) malloc(sizeof(char) * 31);
+            image.md5sum = (char *) malloc(sizeof(char) * 33);
 
             if(paquet.tipus == 'I' && strcmp(paquet.origen, "DANNY") == 0) {
                 x = 0;
@@ -149,7 +143,7 @@ void *connectionHandler(void *auxSocket) {
                     } else {
                         switch (tipusDadaActual) {
                             case 0:
-                                images.fileName[x]= paquet.dades[j];
+                                image.fileName[x]= paquet.dades[j];
                                 //Controlem format dades correcte
                                 if(x > 29) {
                                     error = 1;
@@ -163,8 +157,7 @@ void *connectionHandler(void *auxSocket) {
                                 }
                                 break;
                             case 2:
-                                images.md5sum[x]= paquet.dades[j];
-                                //Controlem format dades correcte
+                                image.md5sum[x]= paquet.dades[j];
                                 if(x > 31) {
                                     error = 1;
                                 }
@@ -176,75 +169,59 @@ void *connectionHandler(void *auxSocket) {
                     }
                 }
                 if (error == 0) {
-                    //aux[strlen(aux)] = '\0';
-                    images.fileName[strlen(images.fileName)] = '\0';
-                    images.md5sum[31] = '\0';
-                    images.size = atoi(aux);
+                    image.fileName[strlen(image.fileName)] = '\0';
+                    image.md5sum[31] = '\0';
+                    image.size = atoi(aux);
 
                     //Mostrem per pantalla la informació de l'imatge rebuda
-                    write(1, images.fileName, strlen(images.fileName));
+                    write(1, image.fileName, strlen(image.fileName));
                     write(1, "\n", 1);
                 }
             } else {
                 error = 1;
             }
 
-            //Llegim la imatge i la guardem
-            images.data = (char *) malloc(sizeof(char) * images.size+1);
-            images.data[0] = '\0';
-            
-            size = images.size;
-            printf("DEBUG: SIZE = %d\n", size);
-            pos = 0;
+            //Reservem memòria per rebre la imatge
+            image.data = (char *) malloc(sizeof(char) * image.size+1);
+            image.data[0] = '\0';
+            size = image.size;
 
-            int delete=0;
+            //Anem llegint i obtenint tots els paquets dividits amb els bytes de la imatge
+            pos = 0;
+            delete = 0;
             while (size > 100) {
                 read(sock, &paquet, sizeof(Packet));
                 for(k=0; k < 100; k++){
-                    images.data[pos] = paquet.dades[k];
-                    images.data[pos+1] = '\0';
+                    image.data[pos] = paquet.dades[k];
+                    image.data[pos+1] = '\0';
                     pos++;
                 }
                 size -= 100;
                 delete++;
             }
-            printf("DEBUG: LEFT %d\n", size);
-            printf("DEBUG: STEPS %d\n", delete);
+            //Llegim últim paquet amb les dades restants (menys de 100 bytes)
             read(sock, &paquet, sizeof(Packet));
-            //paquet.dades[size] = '\0';
-            for(k=0; k < size; k++){
-                images.data[pos] = paquet.dades[k];
+            for (k = 0; k < size; k++) {
+                image.data[pos] = paquet.dades[k];
             }
-            //strcat(images[i].data, paquet.dades);
 
-            /** TODO: Revisar si cal crear el directori desde el codi
-            //Mirem si existeix el directory
-            if (stat("/Barry", &st) == -1) {
-                mkdir("/Barry", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-            }
-            **/
-            
+            //Path de Barry on guardar les imatges
             pathImage[0] = '\0';
             strcat(pathImage, "Barry\0");
             strcat(pathImage, "/\0");
-            strcat(pathImage, images.fileName);
+            strcat(pathImage, image.fileName);
 
-            printf("DEBUG: path = %s\n", pathImage);
-
+            //Guardem la imatge al directori
             imatgefd = open(pathImage, O_WRONLY | O_APPEND | O_CREAT, 0644);
-
-            printf("DEBUG: len = %ld\n", strlen(images.data));
-            printf("DEBUG: size = %d\n", images.size);
-
-            write(imatgefd, images.data, images.size);
+            write(imatgefd, image.data, image.size);
 
             //Alliberem el que ja no faci falta
-            free(images.fileName);
-            images.fileName = NULL;
-            free(images.md5sum);
-            images.md5sum = NULL;
-            free(images.data);
-            images.data = NULL;
+            free(image.fileName);
+            image.fileName = NULL;
+            free(image.md5sum);
+            image.md5sum = NULL;
+            free(image.data);
+            image.data = NULL;
 
             close(imatgefd);
         }
@@ -267,30 +244,6 @@ void *connectionHandler(void *auxSocket) {
         }
         error = 0;
     }
-
-    //TODO: Lectura dels paquets del client de les imatges
-    /*Paquet paquet;
-    int size = 0;
-    int newFile;
-    char md5sum[33]; //un extra per el '\0'
-
-
-
-    read(sock, &paquet, sizeof(Paquet));
-
-    //TODO: definir la size
-    //size = ...
-
-    //TODO: definir el nom del fitxer
-
-    //TODO: definir el md5sum
-    if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
-        newFile = open("test.png", O_WRONLY | O_CREAT);
-
-        write(newFile, paquet.dades, strlen(paquet.dades));
-
-        close(newFile);
-    }*/
 		
     //Alliberar i tancar variables utilitzades per aquesta connexió
 	close(sock);
