@@ -136,10 +136,13 @@ void sendStationsToServer(Station *stations, int numStations) {
 void readDirectory() {
     int countTextFiles = 0, countImageFiles = 0, i = 0;
     char *pathFolder = NULL;
-    Image *images = NULL;
+    char md5sumCommand[255];
     DIR *directory;
     struct dirent *entry;
-    char textFilePath[255], aux[255];
+    char textFilePath[255], aux[255], imageFilePath[255];
+    Packet paquet;
+    Image *images = NULL;
+    int imatgeToSend;
     textFilePath[0] = '\0';
     aux[0]= '\0';
 
@@ -156,6 +159,7 @@ void readDirectory() {
         write(1, "Error reserva memoria stations!\n", 33);
         return;
     }
+
     
     //Guardem memòria pel nom de les imatges i comprovem que s'hagi fet correctament
     images = (Image *) malloc(sizeof(Image) * 1);
@@ -228,6 +232,36 @@ void readDirectory() {
         for (i = 0; i < countImageFiles; i++) {
             write(1, images[i].fileName, strlen(images[i].fileName));
             write(1, "\n", 1);
+        }
+        for(i = 0; i < countImageFiles; i++) {
+            //./Carpeta + / + nomImatge
+            strcpy(imageFilePath, pathFolder);
+            strcat(imageFilePath, "/\0");
+            strcat(imageFilePath, images[i].fileName);
+
+            printf("PATH TO FILE = %s\n\n\n", imageFilePath);
+
+            //Obrim la imatge i la carreguem en memoria
+            imatgeToSend = open(imageFilePath, O_WRONLY|O_CREAT|O_TRUNC, 00666);
+            
+            strcpy(md5sumCommand, "md5sum \0");
+            strcat(md5sumCommand, imageFilePath);
+
+            //printf("MD5SUM = %s\n\n", system(md5sumCommand));
+            strcpy(paquet.origen, "DANNY"); 
+            paquet.origen[5] = '\0';
+            paquet.tipus = 'I';
+            strcpy(paquet.dades, config.stationName);
+            write(fdServerWendy, &paquet, sizeof(Packet));
+
+            //TODO: Size of the image
+            
+            //TODO: enviar la imatge en paquets ANEX
+
+            
+           
+
+            close(imatgeToSend);
         }
 
         //TODO: Enviar imatges a Wendy

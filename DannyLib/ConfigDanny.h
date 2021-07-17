@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include "ReadFilesDanny.h"
+#include "SocketsDanny.h"
 
 //Estructura per guardar la configuració
 typedef struct {
