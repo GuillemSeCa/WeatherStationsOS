@@ -104,6 +104,10 @@ void *connectionHandler(void *auxSocket) {
     Packet paquet;
     Image *images;
     int size = 0;
+    //TODO: Revisar si cal crear el directori desde el codi
+    //struct stat st = {0};
+    int imatgefd;
+    char pathImage[255];
     aux[0] = '\0';
 
     //Llegim el PID d'aquest Danny
@@ -208,8 +212,35 @@ void *connectionHandler(void *auxSocket) {
             printf("DEBUG: LEFT %d\n", size);
             printf("DEBUG: STEPS %d\n", delete);
             read(sock, &paquet, sizeof(Packet));
-            paquet.dades[size] = '\0';
-            strcat(images[i].data, paquet.dades);
+            //paquet.dades[size] = '\0';
+            for(k=0; k < size; k++){
+                images[i].data[pos] = paquet.dades[k];
+            }
+            //strcat(images[i].data, paquet.dades);
+
+            /** TODO: Revisar si cal crear el directori desde el codi
+            //Mirem si existeix el directory
+            if (stat("/Barry", &st) == -1) {
+                mkdir("/Barry", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+            }
+            **/
+            
+            pathImage[0] = '\0';
+            strcat(pathImage, "Barry\0");
+            strcat(pathImage, "/\0");
+            strcat(pathImage, images[i].fileName);
+
+            printf("DEBUG: path = %s\n", pathImage);
+
+            imatgefd = open(pathImage, O_WRONLY | O_APPEND | O_CREAT, 0644);
+
+            printf("DEBUG: len = %ld\n", strlen(images[i].data));
+            printf("DEBUG: size = %d\n", images[i].size);
+
+            write(imatgefd, images[i].data, images[i].size);
+
+            close(imatgefd);
+
             
     
 
