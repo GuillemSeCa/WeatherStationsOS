@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
 
     //Canviem el que fa per defecte el CTRL+C
     signal(SIGINT, ctrlCSignal);
+    signal(SIGKILL, ctrlCSignal);
 
     //Fork per Lloyd
     pid = fork();

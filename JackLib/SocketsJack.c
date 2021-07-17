@@ -89,29 +89,29 @@ void serverRun() {
 	if(fdSocketClient < 0) {
         write(1, MSG_ERR_ACCEPT, sizeof(MSG_ERR_ACCEPT));
 	}
-
-    //Alliberar i tancar variables utilitzades per aquesta connexió
-    close(fdSocketClient);
-    free(auxSocket);
-    auxSocket = NULL;
 }
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
-    int numStations, numChar, i;
-    char aux[2000];
+    int numStations, i, j, x, tipusDadaActual, error = 0;
+    char aux[37], aux1[20], aux2[20], aux3[20], aux4[20];
     Packet paquet;
     Station *stations;
     int sock = *(int*)auxSocket;
     aux[0] = '\0';
+    aux1[0] = '\0';
+    aux2[0] = '\0';
+    aux3[0] = '\0';
+    aux4[0] = '\0';
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
-
+    
     //Anem llegint les dades fins que Danny es desconnecti
-    while (read(fdSocketClient, &paquet, sizeof(Packet))) {
+    while (read(sock, &paquet, sizeof(Packet))) {       
         //Si Danny es desconnecta, sortim
-        if(paquet.tipus == 'Q' && strcmp(paquet.origen, "DANNY") == 0) {
+        if (paquet.tipus == 'Q' && strcmp(paquet.origen, "DANNY") == 0) {
+            write(1, "\nDanny disconnected...\n", 24);
             break;
         }
 
@@ -122,60 +122,122 @@ void *connectionHandler(void *auxSocket) {
         read(sock, &numStations, sizeof(int));
         stations = (Station *) malloc(sizeof(Station) * numStations);
 
+        //Mostrem nom estació
+        write(1, paquet.dades, strlen(paquet.dades));
+        write(1, "\n", 1);
+
         //Llegim totes les estacions rebudes
-        for(i = 0; i < numStations; i++) {
-            //FileName
-            read(sock, &numChar, sizeof(int));
-            stations[i].fileName = (char *) malloc(sizeof(char) * numChar);
-            read(sock, stations[i].fileName, sizeof(char)*numChar);
-            stations[i].fileName[numChar] = '\0';
-            //Date
-            read(sock, &numChar, sizeof(int));
-            stations[i].date = (char *) malloc(sizeof(char) * numChar);
-            read(sock, stations[i].date, sizeof(char)*numChar);
-            stations[i].date[numChar] = '\0';
-            //Hour
-            read(sock, &numChar, sizeof(int));
-            stations[i].hour = (char *) malloc(sizeof(char) * numChar);
-            read(sock, stations[i].hour, sizeof(char)*numChar);
-            stations[i].hour[numChar] = '\0';
-            //Temperature
-            read(sock, &stations[i].temperature, sizeof(float));
-            //Humidity
-            read(sock, &stations[i].humidity, sizeof(int));
-            //AtmosphericPressure
-            read(sock, &stations[i].atmosphericPressure, sizeof(float));
-            //Precipitation
-            read(sock, &stations[i].precipitation, sizeof(float));
-            
-            //Mostrem la informació del paquet
-            paquet.dades[strlen(paquet.dades)] = '\0';
-            sprintf(aux, "\n%s\n%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", paquet.dades, stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
+        for (i = 0; i < numStations; i++) {
+            //Reservem memòria
+            stations[i].date = (char *) malloc(sizeof(char) * 11);
+            stations[i].hour = (char *) malloc(sizeof(char) * 9);
+
+            //Llegim paquet i guardem les dades
+            read(sock, &paquet, sizeof(Packet));
+            x = 0;
+            tipusDadaActual = 0;
+            for (j = 0; j < strlen(paquet.dades); j++) {
+                if (paquet.dades[j] == '#') {
+                    tipusDadaActual++;
+                    x = 0;
+                } else {
+                    switch (tipusDadaActual) {
+                        case 0:
+                            stations[i].date[x]= paquet.dades[j];
+                            //Controlem format dades correcte
+                            if(x > 9) {
+                                error = 1;
+                            }
+                            break;
+                        case 1:
+                            stations[i].hour[x] = paquet.dades[j];
+                            if(x > 7) {
+                                error = 1;
+                            }
+                            break;
+                        case 2:
+                            aux1[x] = paquet.dades[j];
+                            if(x > 4) {
+                                error = 1;
+                            }
+                            break;
+                        case 3:
+                            aux2[x] = paquet.dades[j];
+                            if(x > 2) {
+                                error = 1;
+                            }
+                            break;
+                        case 4:
+                            aux3[x] = paquet.dades[j];
+                            if(x > 5) {
+                                error = 1;
+                            }
+                            break;
+                        case 5:
+                            aux4[x] = paquet.dades[j];
+                            if(x > 3) {
+                                error = 1;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    x++;
+                }
+            }
+            aux1[strlen(aux1)] = '\0';
+            aux2[strlen(aux2)] = '\0';
+            aux3[strlen(aux3)] = '\0';
+            aux4[strlen(aux4)] = '\0';
+            stations[i].date[10] = '\0';
+            stations[i].hour[8] = '\0';
+
+            stations[i].temperature = atof(aux1);
+            stations[i].humidity = atoi(aux2);
+            stations[i].atmosphericPressure = atof(aux3);
+            stations[i].precipitation = atof(aux4);
+
+            //Mostrem per pantalla la informació de l'estació rebuda
+            write(1, "\n", 1);
+            sprintf(aux, "%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
+            aux[strlen(aux)] = '\0';
             write(1, aux, strlen(aux));
         }
 
-        //Informem a Danny de que les dades són correctes
-        strcpy(paquet.origen, "JACK"); 
-        paquet.origen[4] = '\0';
-        paquet.tipus = 'B';
-        strcpy(paquet.dades, "DADES OK");
-        paquet.dades[8] = '\0';
-        write(fdSocketClient, &paquet, sizeof(Packet));
+        //Informem a Danny de que les dades són correctes o incorrectes
+        if (error == 0) {
+            strcpy(paquet.origen, "JACK"); 
+            paquet.origen[4] = '\0';
+            paquet.tipus = 'B';
+            strcpy(paquet.dades, "DADES OK");
+            paquet.dades[8] = '\0';
+            write(sock, &paquet, sizeof(Packet));
+        } else {
+            strcpy(paquet.origen, "JACK"); 
+            paquet.origen[4] = '\0';
+            paquet.tipus = 'K';
+            strcpy(paquet.dades, "DADES KO");
+            paquet.dades[8] = '\0';
+            write(sock, &paquet, sizeof(Packet));
+        }
+
+        //Alliberem el que ja no faci falta
+        error = 0;
+        for(i = 0; i < numStations; i++) {
+            free(stations[i].fileName);
+            stations[i].fileName = NULL;
+            free(stations[i].date);
+            stations[i].date = NULL;
+            free(stations[i].hour);
+            stations[i].hour = NULL;
+        }
+        free(stations);
+        stations = NULL;
     }
 		
     //Alliberar i tancar variables utilitzades per aquesta connexió
 	close(sock);
-    for(i = 0; i < numStations; i++) {
-        free(stations[i].fileName);
-        stations[i].fileName = NULL;
-        free(stations[i].date);
-        stations[i].date = NULL;
-        free(stations[i].hour);
-        stations[i].hour = NULL;
-    }
-    free(stations);
-    stations = NULL;
-	free(auxSocket);
+    free(auxSocket);
     auxSocket = NULL;
 	
 	return 0;

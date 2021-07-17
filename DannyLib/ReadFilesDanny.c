@@ -78,9 +78,9 @@ void readStation(Station *station, char *path, int numStation) {
 
 //Mètode per enviar la informació de les estacions al servidor Jack
 void sendStationsToServer(Station *stations, int numStations) {
-    int i, numSend;
+    int i;
+    char aux[1000];
     Packet paquet;
-    char aux[1500];
 
     //Enviem paquet a Jack per les dades
     write(1, "\nSending data...\n", 17);
@@ -95,29 +95,14 @@ void sendStationsToServer(Station *stations, int numStations) {
 
     //Iterem totes les estacions i anem enviant la informació
     for(i = 0; i < numStations; i++) {
-        //fileName
-        numSend = strlen(stations[i].fileName);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].fileName, sizeof(char) * strlen(stations[0].fileName));
-        //date
-        numSend = strlen(stations[i].date);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].date, sizeof(char) * strlen(stations[0].date));
-        //hour
-        numSend = strlen(stations[i].hour);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].hour, sizeof(char) * strlen(stations[0].hour));
-        //temperature
-        write(fdServer, &stations[i].temperature, sizeof(float));
-        //humidity
-        write(fdServer, &stations[i].humidity, sizeof(int));
-        //atmosphericPressure
-        write(fdServer, &stations[i].atmosphericPressure, sizeof(float));
-        //precipitation
-        write(fdServer, &stations[i].precipitation, sizeof(float));
-
+        strcpy(paquet.origen, "DANNY"); 
+        paquet.origen[5] = '\0';
+        paquet.tipus = 'D';        
         sprintf(aux, "%s#%s#%.1f#%d#%.1f#%.1f", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
         aux[strlen(aux)] = '\0';
+        strcpy(paquet.dades, aux);
+        //Enviem
+        write(fdServer, &paquet, sizeof(Packet));
     }
 
     //Confirmem que s'hagi enviat correctament les dades
@@ -239,7 +224,7 @@ void readDirectory() {
             strcat(imageFilePath, "/\0");
             strcat(imageFilePath, images[i].fileName);
 
-            printf("PATH TO FILE = %s\n\n\n", imageFilePath);
+            //printf("PATH TO FILE = %s\n\n\n", imageFilePath);
 
             //Obrim la imatge i la carreguem en memoria
             imatgeToSend = open(imageFilePath, O_WRONLY|O_CREAT|O_TRUNC, 00666);

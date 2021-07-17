@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
 
     //Canviem el que fa per defecte el CTRL+C
     signal(SIGINT, ctrlCSignal);
+    signal(SIGKILL, ctrlCSignal);
     //Canviem el que es fa per defecte quan es rep una Alarma
     signal(SIGALRM, alarmaSignal);
 

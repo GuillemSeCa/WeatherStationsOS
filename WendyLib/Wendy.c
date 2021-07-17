@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 
 	//Canviem el que fa per defecte el CTRL+C
     signal(SIGINT, ctrlCSignal);
+	signal(SIGKILL, ctrlCSignal);
 
 	//Missatge benvinguda
 	write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
