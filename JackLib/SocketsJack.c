@@ -128,80 +128,85 @@ void *connectionHandler(void *auxSocket) {
 
         //Llegim totes les estacions rebudes
         for (i = 0; i < numStations; i++) {
-            //Reservem memòria
+            //Reservem memòria necessària
             stations[i].date = (char *) malloc(sizeof(char) * 11);
             stations[i].hour = (char *) malloc(sizeof(char) * 9);
 
-            //Llegim paquet i guardem les dades
+            //Llegim paquet, tractem i preparem les dades, i les guardem
             read(sock, &paquet, sizeof(Packet));
-            x = 0;
-            tipusDadaActual = 0;
-            for (j = 0; j < strlen(paquet.dades); j++) {
-                if (paquet.dades[j] == '#') {
-                    tipusDadaActual++;
-                    x = 0;
-                } else {
-                    switch (tipusDadaActual) {
-                        case 0:
-                            stations[i].date[x]= paquet.dades[j];
-                            //Controlem format dades correcte
-                            if(x > 9) {
-                                error = 1;
-                            }
-                            break;
-                        case 1:
-                            stations[i].hour[x] = paquet.dades[j];
-                            if(x > 7) {
-                                error = 1;
-                            }
-                            break;
-                        case 2:
-                            aux1[x] = paquet.dades[j];
-                            if(x > 4) {
-                                error = 1;
-                            }
-                            break;
-                        case 3:
-                            aux2[x] = paquet.dades[j];
-                            if(x > 2) {
-                                error = 1;
-                            }
-                            break;
-                        case 4:
-                            aux3[x] = paquet.dades[j];
-                            if(x > 5) {
-                                error = 1;
-                            }
-                            break;
-                        case 5:
-                            aux4[x] = paquet.dades[j];
-                            if(x > 3) {
-                                error = 1;
-                            }
-                            break;
-                        default:
-                            break;
+            if(paquet.tipus == 'D' && strcmp(paquet.origen, "DANNY") == 0) {
+                x = 0;
+                tipusDadaActual = 0;
+                for (j = 0; j < strlen(paquet.dades); j++) {
+                    if (paquet.dades[j] == '#') {
+                        tipusDadaActual++;
+                        x = 0;
+                    } else {
+                        switch (tipusDadaActual) {
+                            case 0:
+                                stations[i].date[x]= paquet.dades[j];
+                                //Controlem format dades correcte
+                                if(x > 9) {
+                                    error = 1;
+                                }
+                                break;
+                            case 1:
+                                stations[i].hour[x] = paquet.dades[j];
+                                if(x > 7) {
+                                    error = 1;
+                                }
+                                break;
+                            case 2:
+                                aux1[x] = paquet.dades[j];
+                                if(x > 4) {
+                                    error = 1;
+                                }
+                                break;
+                            case 3:
+                                aux2[x] = paquet.dades[j];
+                                if(x > 2) {
+                                    error = 1;
+                                }
+                                break;
+                            case 4:
+                                aux3[x] = paquet.dades[j];
+                                if(x > 5) {
+                                    error = 1;
+                                }
+                                break;
+                            case 5:
+                                aux4[x] = paquet.dades[j];
+                                if(x > 3) {
+                                    error = 1;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        x++;
                     }
-                    x++;
                 }
+                if (error == 0) {
+                    aux1[strlen(aux1)] = '\0';
+                    aux2[strlen(aux2)] = '\0';
+                    aux3[strlen(aux3)] = '\0';
+                    aux4[strlen(aux4)] = '\0';
+                    stations[i].date[10] = '\0';
+                    stations[i].hour[8] = '\0';
+                    stations[i].temperature = atof(aux1);
+                    stations[i].humidity = atoi(aux2);
+                    stations[i].atmosphericPressure = atof(aux3);
+                    stations[i].precipitation = atof(aux4);
+
+                    //Mostrem per pantalla la informació de l'estació rebuda
+                    write(1, "\n", 1);
+                    sprintf(aux, "%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
+                    aux[strlen(aux)] = '\0';
+                    write(1, aux, strlen(aux));
+                }
+            } else {
+                error = 1;
             }
-            aux1[strlen(aux1)] = '\0';
-            aux2[strlen(aux2)] = '\0';
-            aux3[strlen(aux3)] = '\0';
-            aux4[strlen(aux4)] = '\0';
-            stations[i].date[10] = '\0';
-            stations[i].hour[8] = '\0';
-
-            stations[i].temperature = atof(aux1);
-            stations[i].humidity = atoi(aux2);
-            stations[i].atmosphericPressure = atof(aux3);
-            stations[i].precipitation = atof(aux4);
-
-            //Mostrem per pantalla la informació de l'estació rebuda
-            write(1, "\n", 1);
-            sprintf(aux, "%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
-            aux[strlen(aux)] = '\0';
-            write(1, aux, strlen(aux));
         }
 
         //Informem a Danny de que les dades són correctes o incorrectes

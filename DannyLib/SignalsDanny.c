@@ -31,6 +31,13 @@ void ctrlCSignal() {
     strcpy(paquet.dades, config.stationName);
 	write(fdServer, &paquet, sizeof(Packet));
 
+    //Informem a Wendy de la desconnexió
+    strcpy(paquet.origen, "DANNY"); 
+    paquet.origen[5] = '\0';
+    paquet.tipus = 'Q';
+    strcpy(paquet.dades, config.stationName);
+	write(fdServerWendy, &paquet, sizeof(Packet));
+
     //Desconnectem Danny i alliberem tota la memòria dinàmica restant
     write(1, "\nDisconnecting Danny...", 24);
     closeConnectionServer();

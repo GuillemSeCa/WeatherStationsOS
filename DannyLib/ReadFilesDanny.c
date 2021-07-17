@@ -78,9 +78,9 @@ void readStation(Station *station, char *path, int numStation) {
 
 //Mètode per enviar la informació de les estacions al servidor Jack
 void sendStationsToServer(Station *stations, int numStations) {
-    int i, numSend;
+    int i;
+    char aux[1000];
     Packet paquet;
-    char aux[1500];
 
     //Enviem paquet a Jack per les dades
     write(1, "\nSending data...\n", 17);
@@ -95,36 +95,20 @@ void sendStationsToServer(Station *stations, int numStations) {
 
     //Iterem totes les estacions i anem enviant la informació
     for(i = 0; i < numStations; i++) {
-        //fileName
-        numSend = strlen(stations[i].fileName);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].fileName, sizeof(char) * strlen(stations[0].fileName));
-        //date
-        numSend = strlen(stations[i].date);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].date, sizeof(char) * strlen(stations[0].date));
-        //hour
-        numSend = strlen(stations[i].hour);
-        write(fdServer, &numSend, sizeof(int));
-        write(fdServer, stations[i].hour, sizeof(char) * strlen(stations[0].hour));
-        //temperature
-        write(fdServer, &stations[i].temperature, sizeof(float));
-        //humidity
-        write(fdServer, &stations[i].humidity, sizeof(int));
-        //atmosphericPressure
-        write(fdServer, &stations[i].atmosphericPressure, sizeof(float));
-        //precipitation
-        write(fdServer, &stations[i].precipitation, sizeof(float));
-
+        //Creació paquet
+        strcpy(paquet.origen, "DANNY"); 
+        paquet.origen[5] = '\0';
+        paquet.tipus = 'D';
         sprintf(aux, "%s#%s#%.1f#%d#%.1f#%.1f", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
         aux[strlen(aux)] = '\0';
+        strcpy(paquet.dades, aux);
+        //Enviem
+        write(fdServer, &paquet, sizeof(Packet));
     }
 
     //Confirmem que s'hagi enviat correctament les dades
     read(fdServer, &paquet, sizeof(Packet));
-    if(paquet.tipus == 'B' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "DADES OK") == 0) {
-        write(1, "Data sent\n", 11);
-    } else {
+    if(paquet.tipus != 'B' || strcmp(paquet.origen, "JACK") != 0 || strcmp(paquet.dades, "DADES OK") != 0) {
         write(1, "Error al enviar les dades al Servidor Jack!\n", 45);
         if(paquet.tipus == 'K' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "DADES KO") == 0) {
             write(1, "Dades erronies!\n", 17);
@@ -134,18 +118,14 @@ void sendStationsToServer(Station *stations, int numStations) {
 
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectory() {
-    int countTextFiles = 0, countImageFiles = 0, i = 0;
+    int countTextFiles = 0, countImageFiles = 0, i = 0, size = 0, imatgeToSend;
+    char textFilePath[255], aux[255]/*, md5sumCommand[255]*/, str[255], imageFilePath[255];
     char *pathFolder = NULL;
-    char md5sumCommand[255];
+    Packet paquet;
+    off_t currentPos;
     DIR *directory;
     struct dirent *entry;
-    char textFilePath[255], aux[255], imageFilePath[255];
-    Packet paquet;
     Image *images = NULL;
-    int imatgeToSend;
-    int size = 0;
-    char str[255];
-    off_t currentPos;
     textFilePath[0] = '\0';
     aux[0]= '\0';
 
@@ -163,7 +143,6 @@ void readDirectory() {
         return;
     }
 
-    
     //Guardem memòria pel nom de les imatges i comprovem que s'hagi fet correctament
     images = (Image *) malloc(sizeof(Image) * 1);
     if (images == NULL) {
@@ -236,42 +215,49 @@ void readDirectory() {
             write(1, images[i].fileName, strlen(images[i].fileName));
             write(1, "\n", 1);
         }
+
+        //Enviem paquet a Wendy per les dades
+        strcpy(paquet.origen, "DANNY"); 
+        paquet.origen[5] = '\0';
+        paquet.tipus = 'D';
+        strcpy(paquet.dades, config.stationName);
+        write(fdServerWendy, &paquet, sizeof(Packet));
+
+        //Enviem el número d'estacions al servidor
+        write(fdServerWendy, &countImageFiles, sizeof(int));
+
+        //Enviem les imatges a Wendy
         for(i = 0; i < countImageFiles; i++) {
-            //./Carpeta + / + nomImatge
+            //./carpeta + / + nomImatge
             strcpy(imageFilePath, pathFolder);
             strcat(imageFilePath, "/\0");
             strcat(imageFilePath, images[i].fileName);
 
-            printf("PATH TO FILE = %s\n\n\n", imageFilePath);
-
-            //Obrim la imatge i la carreguem en memoria
+            //Obrim la imatge i la carreguem en memòria
             imatgeToSend = open(imageFilePath, O_RDONLY);
             
-            
-
-
+            //Preparem primer paquet informatiu (Name#Size#MD5) per enviar a Wendy amb el nom de la imatge
             strcpy(paquet.origen, "DANNY"); 
             paquet.origen[5] = '\0';
             paquet.tipus = 'I';
-            strcpy(paquet.dades, config.stationName);
-            //write(fdServerWendy, &paquet, sizeof(Packet));
+            strcpy(paquet.dades, images[i].fileName);
 
-
-            
-            //Calculate the size of the file
+            //Calcular tamany imatge i afegir-ho al paquet
             currentPos = lseek(imatgeToSend, (size_t)0, SEEK_CUR);
             size = lseek(imatgeToSend, (size_t)0, SEEK_END);
             lseek(imatgeToSend, currentPos, SEEK_SET);
             sprintf(str, "#%d#", size);
             strcat(paquet.dades, str);
+
+            //Calcular MD5SUM, afegir-ho al paquet, i enviar-lo
+            //TODO: Fer md5sum correctament
+            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa\0");
+            write(fdServerWendy, &paquet, sizeof(Packet));
             
-            printf("SIZE OF IMAGE = %d bytes\n", size);
-
-
             //TODO: Calculem el MD5 de la imatge i la guardem en una variable
-            strcpy(md5sumCommand, "md5sum \0");
+            /*strcpy(md5sumCommand, "md5sum \0");
             strcat(md5sumCommand, imageFilePath);
-            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa"); //Copiem md5 al paquet
+        
             printf("DEBUG: paquet.dades = %s", paquet.dades);
             //Enviem el paquet amb Name#Size#MD5
             write(fdServerWendy, &paquet, sizeof(Packet)); //Paquet mida#nom#md5sum
@@ -282,20 +268,25 @@ void readDirectory() {
             paquet.tipus = 'F';
             while(read(imatgeToSend, &paquet.dades, sizeof(char)*1000) > 0){
                 write(fdServerWendy, &paquet, sizeof(Packet));
-            }
+            }*/
 
             //TODO: Controlar si paquet és més petit que 1000 (l'últim si no és múltiple)
             //TODO: Llegir paquet per l'altre costat
-            //TODO: enviar paquest des de Wendy de confirmacio
-           
+            //TODO: enviar paquest des de Wendy de confirmacio*/
 
             close(imatgeToSend);
         }
 
-        //TODO: Enviar imatges a Wendy
+        //Confirmem que s'hagi enviat correctament les dades
+        read(fdServerWendy, &paquet, sizeof(Packet));
+        if(paquet.tipus != 'S' || strcmp(paquet.origen, "WENDY") == 0 || strcmp(paquet.dades, "IMATGE OK") != 0) {
+            write(1, "Error al enviar les dades al Servidor Wendy!\n", 46);
+            if(paquet.tipus == 'R' && strcmp(paquet.origen, "WENDY") == 0 && strcmp(paquet.dades, "IMATGE KO") == 0) {
+                write(1, "Dades erronies!\n", 17);
+            }
+        }
     }
    
-
     //Si hi ha fitxers de text dins de la carpeta
     if (countTextFiles > 0) {
         //Mostrem tots els fitxers llegits amb la informació corresponent
@@ -323,6 +314,13 @@ void readDirectory() {
 
         //Enviem la informació al servidor
         sendStationsToServer(stations, countTextFiles);
+        //Missatge informatiu
+        for(i = 0; i < countImageFiles; i++) {
+            write(1, "Sending ", 9);
+            write(1, images[i].fileName, strlen(images[i].fileName));
+            write(1, "\n", 1);
+        }
+        write(1, "Data sent\n", 11);
     }
     
     //Alliberem tota la memòria dinàmica i tanquem tot

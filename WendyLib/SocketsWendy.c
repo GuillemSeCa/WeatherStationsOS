@@ -98,16 +98,127 @@ void serverRun() {
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
+    int numImages, i, j, x, tipusDadaActual, error = 0;
+    char aux[20];
     int sock = *(int*)auxSocket;
+    Packet paquet;
+    Image *images;
+    aux[0] = '\0';
 
-     //TODO: Lectura dels paquets del client de les imatges
-    Paquet paquet;
+    //Llegim el PID d'aquest Danny
+    read(sock, &clientPIDs[countClients - 1], sizeof(int));
+
+    //Anem llegint les dades fins que Danny es desconnecti
+    while (read(sock, &paquet, sizeof(Packet))) {
+        //Si Danny es desconnecta, sortim
+        if (paquet.tipus == 'Q' && strcmp(paquet.origen, "DANNY") == 0) {
+            write(1, "\nDanny disconnected...\n", 24);
+            break;
+        }
+
+        //Llegim quantes imatges rebrem i reservem la memòria dinàmica necessària
+        write(1, "\n", 1);
+        write(1, MSG_WENDY, sizeof(MSG_WENDY));
+        write(1, MSG_RECEIVING, sizeof(MSG_RECEIVING));
+        write(1, paquet.dades, strlen(paquet.dades));
+        write(1, "\n", 1);
+        read(sock, &numImages, sizeof(int));
+        images = (Image *) malloc(sizeof(Image) * numImages);
+
+        //Anem llegint paquets, tractem i preparem les dades, i les guardem
+        for (i = 0; i < numImages; i++) {
+            read(sock, &paquet, sizeof(Packet));
+            //Reservem memòria necessària
+            images[i].fileName = (char *) malloc(sizeof(char) * 31);
+            images[i].md5sum = (char *) malloc(sizeof(char) * 33);
+
+            if(paquet.tipus == 'I' && strcmp(paquet.origen, "DANNY") == 0) {
+                x = 0;
+                tipusDadaActual = 0;
+                for (j = 0; j < strlen(paquet.dades); j++) {
+                    if (paquet.dades[j] == '#') {
+                        tipusDadaActual++;
+                        x = 0;
+                    } else {
+                        switch (tipusDadaActual) {
+                            case 0:
+                                images[i].fileName[x]= paquet.dades[j];
+                                //Controlem format dades correcte
+                                if(x > 29) {
+                                    error = 1;
+                                }
+                                break;
+                            case 1:
+                                aux[x] = paquet.dades[j];
+                                if(x > 20) {
+                                    error = 1;
+                                }
+                                break;
+                            case 2:
+                                images[i].md5sum[x]= paquet.dades[j];
+                                //Controlem format dades correcte
+                                if(x > 31) {
+                                    error = 1;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        x++;
+                    }
+                }
+                if (error == 0) {
+                    aux[strlen(aux)] = '\0';
+                    images[i].fileName[strlen(images[i].fileName)] = '\0';
+                    images[i].md5sum[31] = '\0';
+                    images[i].size = atoi(aux);
+
+                    //Mostrem per pantalla la informació de l'imatge rebuda
+                    write(1, images[i].fileName, strlen(images[i].fileName));
+                    write(1, "\n", 1);
+                }
+            } else {
+                error = 1;
+            }
+        }
+
+        //Informem a Danny de que les dades són correctes o incorrectes
+        if (error == 0) {
+            strcpy(paquet.origen, "JACK"); 
+            paquet.origen[4] = '\0';
+            paquet.tipus = 'S';
+            strcpy(paquet.dades, "IMATGE OK");
+            paquet.dades[9] = '\0';
+            write(sock, &paquet, sizeof(Packet));
+        } else {
+            strcpy(paquet.origen, "JACK"); 
+            paquet.origen[4] = '\0';
+            paquet.tipus = 'R';
+            strcpy(paquet.dades, "IMATGE KO");
+            paquet.dades[9] = '\0';
+            write(sock, &paquet, sizeof(Packet));
+        }
+        
+        //Alliberem el que ja no faci falta
+        error = 0;
+        for(i = 0; i < numImages; i++) {
+            free(images[i].fileName);
+            images[i].fileName = NULL;
+            free(images[i].md5sum);
+            images[i].md5sum = NULL;
+        }
+        free(images);
+        images = NULL;
+    }
+
+    //TODO: Lectura dels paquets del client de les imatges
+    /*Paquet paquet;
     int size = 0;
     int newFile;
     char md5sum[33]; //un extra per el '\0'
-    
-    
-    
+
+
+
     read(sock, &paquet, sizeof(Paquet));
 
     //TODO: definir la size
@@ -118,49 +229,14 @@ void *connectionHandler(void *auxSocket) {
     //TODO: definir el md5sum
     if(paquet.tipus == 'C' && strcmp(paquet.origen, "DANNY") == 0) {
         newFile = open("test.png", O_WRONLY | O_CREAT);
-        
+
         write(newFile, paquet.dades, strlen(paquet.dades));
 
         close(newFile);
-    }
-
-
-    
-
-    //Llegim el PID d'aquest Danny
-    read(sock, &clientPIDs[countClients - 1], sizeof(int));
-
-	//Get the socket descriptor
-	/*int sock = *(int*)auxSocket;
-	int read_size;
-	char *message , client_message[2000];
-	
-	//Send some messages to the client
-	message = "Greetings! I am your connection handler\n";
-	write(sock , message , strlen(message));
-	
-	message = "Now type something and i shall repeat what you type \n";
-	write(sock , message , strlen(message));
-	
-	//Receive a message from client
-	while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
-	{
-		//Send the message back to client
-		write(sock , client_message , strlen(client_message));
-	}
-	
-	if(read_size == 0)
-	{
-		puts("Client disconnected");
-		fflush(stdout);
-	}
-	else if(read_size == -1)
-	{
-		perror("recv failed");
-	}
+    }*/
 		
     //Alliberar i tancar variables utilitzades per aquesta connexió
-	close(sock);*/
+	close(sock);
 	free(auxSocket);
     auxSocket = NULL;
 	

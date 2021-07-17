@@ -18,6 +18,7 @@
 #define MAX_CONNECTIONS 20
 #define MSG_WENDY "$Wendy:\n"
 #define MSG_WAITING "Waiting...\n"
+#define MSG_RECEIVING "Receiving data from "
 #define MSG_ERR_SOCKET "Error durant la creacio del socket del Servidor Wendy!\n"
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor Wendy)!\n"
 #define MSG_ERR_CREATE "Error al crear un nou thread (Servidor Wendy)!\n"
@@ -29,6 +30,13 @@ typedef struct {
     char tipus;
     char dades[1000];
 } Packet;
+
+//Estructura per guardar les dades d'una imatge
+typedef struct {
+    char *fileName;
+    int size;
+    char *md5sum;
+} Image;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigWendy configWendy);
