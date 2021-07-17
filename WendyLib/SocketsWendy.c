@@ -102,7 +102,7 @@ void *connectionHandler(void *auxSocket) {
     char aux[20];
     int sock = *(int*)auxSocket;
     Packet paquet;
-    Image *images;
+    Image images;
     int size = 0;
     //TODO: Revisar si cal crear el directori desde el codi
     //struct stat st = {0};
@@ -128,7 +128,7 @@ void *connectionHandler(void *auxSocket) {
         write(1, paquet.dades, strlen(paquet.dades));
         write(1, "\n", 1);
         read(sock, &numImages, sizeof(int));
-        images = (Image *) malloc(sizeof(Image) * numImages);
+        //images = (Image *) malloc(sizeof(Image) * numImages);
 
         //Anem llegint paquets, tractem i preparem les dades, i les guardem
         for (i = 0; i < numImages; i++) {
@@ -136,8 +136,8 @@ void *connectionHandler(void *auxSocket) {
             read(sock, &paquet, sizeof(Packet));
 
             //Reservem memòria necessària
-            images[i].fileName = (char *) malloc(sizeof(char) * 31);
-            images[i].md5sum = (char *) malloc(sizeof(char) * 33);
+            images.fileName = (char *) malloc(sizeof(char) * 31);
+            images.md5sum = (char *) malloc(sizeof(char) * 33);
 
             if(paquet.tipus == 'I' && strcmp(paquet.origen, "DANNY") == 0) {
                 x = 0;
@@ -149,7 +149,7 @@ void *connectionHandler(void *auxSocket) {
                     } else {
                         switch (tipusDadaActual) {
                             case 0:
-                                images[i].fileName[x]= paquet.dades[j];
+                                images.fileName[x]= paquet.dades[j];
                                 //Controlem format dades correcte
                                 if(x > 29) {
                                     error = 1;
@@ -163,7 +163,7 @@ void *connectionHandler(void *auxSocket) {
                                 }
                                 break;
                             case 2:
-                                images[i].md5sum[x]= paquet.dades[j];
+                                images.md5sum[x]= paquet.dades[j];
                                 //Controlem format dades correcte
                                 if(x > 31) {
                                     error = 1;
@@ -177,33 +177,32 @@ void *connectionHandler(void *auxSocket) {
                 }
                 if (error == 0) {
                     //aux[strlen(aux)] = '\0';
-                    images[i].fileName[strlen(images[i].fileName)] = '\0';
-                    images[i].md5sum[31] = '\0';
-                    images[i].size = atoi(aux);
+                    images.fileName[strlen(images.fileName)] = '\0';
+                    images.md5sum[31] = '\0';
+                    images.size = atoi(aux);
 
                     //Mostrem per pantalla la informació de l'imatge rebuda
-                    write(1, images[i].fileName, strlen(images[i].fileName));
+                    write(1, images.fileName, strlen(images.fileName));
                     write(1, "\n", 1);
                 }
             } else {
                 error = 1;
             }
 
-
             //Llegim la imatge i la guardem
-            images[i].data = (char *) malloc(sizeof(char) * images[i].size+1);
-            images[i].data[0] = '\0';
+            images.data = (char *) malloc(sizeof(char) * images.size+1);
+            images.data[0] = '\0';
             
-            size = images[i].size;
+            size = images.size;
             printf("DEBUG: SIZE = %d\n", size);
             pos = 0;
 
             int delete=0;
-            while(size > 100){
+            while (size > 100) {
                 read(sock, &paquet, sizeof(Packet));
                 for(k=0; k < 100; k++){
-                    images[i].data[pos] = paquet.dades[k];
-                    images[i].data[pos+1] = '\0';
+                    images.data[pos] = paquet.dades[k];
+                    images.data[pos+1] = '\0';
                     pos++;
                 }
                 size -= 100;
@@ -214,7 +213,7 @@ void *connectionHandler(void *auxSocket) {
             read(sock, &paquet, sizeof(Packet));
             //paquet.dades[size] = '\0';
             for(k=0; k < size; k++){
-                images[i].data[pos] = paquet.dades[k];
+                images.data[pos] = paquet.dades[k];
             }
             //strcat(images[i].data, paquet.dades);
 
@@ -228,25 +227,27 @@ void *connectionHandler(void *auxSocket) {
             pathImage[0] = '\0';
             strcat(pathImage, "Barry\0");
             strcat(pathImage, "/\0");
-            strcat(pathImage, images[i].fileName);
+            strcat(pathImage, images.fileName);
 
             printf("DEBUG: path = %s\n", pathImage);
 
             imatgefd = open(pathImage, O_WRONLY | O_APPEND | O_CREAT, 0644);
 
-            printf("DEBUG: len = %ld\n", strlen(images[i].data));
-            printf("DEBUG: size = %d\n", images[i].size);
+            printf("DEBUG: len = %ld\n", strlen(images.data));
+            printf("DEBUG: size = %d\n", images.size);
 
-            write(imatgefd, images[i].data, images[i].size);
+            write(imatgefd, images.data, images.size);
+
+            //Alliberem el que ja no faci falta
+            free(images.fileName);
+            images.fileName = NULL;
+            free(images.md5sum);
+            images.md5sum = NULL;
+            free(images.data);
+            images.data = NULL;
 
             close(imatgefd);
-
-            
-    
-
         }
-
-
 
         //Informem a Danny de que les dades són correctes o incorrectes
         if (error == 0) {
@@ -264,19 +265,7 @@ void *connectionHandler(void *auxSocket) {
             paquet.dades[9] = '\0';
             write(sock, &paquet, sizeof(Packet));
         }
-        
-        //Alliberem el que ja no faci falta
         error = 0;
-        for(i = 0; i < numImages; i++) {
-            free(images[i].fileName);
-            images[i].fileName = NULL;
-            free(images[i].md5sum);
-            images[i].md5sum = NULL;
-            free(images[i].data);
-            images[i].data = NULL;
-        }
-        free(images);
-        images = NULL;
     }
 
     //TODO: Lectura dels paquets del client de les imatges

@@ -272,7 +272,6 @@ void readDirectory() {
                 
                 size -= 100;
             }
-            printf("DEBUG: %d\n", size);
             read(imatgeToSend, &paquet.dades, sizeof(char)*size);
             write(fdServerWendy, &paquet, sizeof(Packet));
 
