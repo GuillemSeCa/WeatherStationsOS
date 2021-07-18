@@ -223,14 +223,6 @@ void *connectionHandler(void *auxSocket) {
             strcpy(paquet.dades, "DADES OK");
             paquet.dades[8] = '\0';
             write(sock, &paquet, sizeof(Packet));
-            //TODO: Descomentar
-            /**
-            printf("DEBUG: COMENÇO a guardar les coses a memoria compartida\n");
-            //TODO: Guardar-ho a memoria compartida
-            sleep(10);
-            printf("DEBUG: He guardat les coses a memoria compartida\n");
-            SEM_signal(&lloydSem);
-            **/
         } else {
             strcpy(paquet.origen, "JACK"); 
             paquet.origen[4] = '\0';

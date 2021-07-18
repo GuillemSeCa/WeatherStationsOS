@@ -146,9 +146,6 @@ void calculateMD5SUM(char md5sum[33], char imageFilePath[255]) {
             break;
         //Pare
         default:
-            //TODO: Mirar si descomentant funciona
-            //Esperar acabi fill calcular md5um
-            //wait(pidFork);
             //Tanquem fd d'escriptura
             close(pipeFDs[1]);
             //Llegim el resultat a través del pipe
@@ -219,8 +216,7 @@ void readDirectory() {
                 readStation(stations, textFilePath, countTextFiles-2);
 
                 //Eliminem el fitxer
-                //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
-                //remove(textFilePath);
+                remove(textFilePath);
 
                 //Reiniciem el path al fitxer .txt
                 textFilePath[0] = '\0';
@@ -307,13 +303,10 @@ void readDirectory() {
             read(imatgeToSend, &paquet.dades, sizeof(char)*size);
             write(fdServerWendy, &paquet, sizeof(Packet));
 
-            //printf("DEBUG: s'acaba d'enviar la imatge (ultim paquet)\n");
-
             //Tanquem i eliminem la imatge
             imageFilePath[strlen(imageFilePath)] = '\0';
             memmove(imageFilePath, imageFilePath + 2, strlen(imageFilePath));
-            //TODO: Descomentar (ficat per no tenir que anar creant els fitxers)
-            //remove(imageFilePath);
+            remove(imageFilePath);
             imageFilePath[0] = '\0';
             close(imatgeToSend);
         }
@@ -360,7 +353,6 @@ void readDirectory() {
             write(1, "Sending ", 9);
             write(1, images[i].fileName, strlen(images[i].fileName));
             write(1, "\n", 1);
-            //printf("DEBUG: nameFileImage = %s\n", images[i].fileName);
         }
         write(1, "Data sent\n", 11);
     }

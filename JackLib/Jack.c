@@ -41,8 +41,7 @@ void lloydProcess() {
 
     //Reprogramem la signal Alarm per a que cada 2 minuts es reescrigui el fitxer de "Hallorann.txt"
     signal(SIGALRM, writeFile);
-    //TODO: Canviar a 120 (cada 2 minuts)
-    alarm(10);
+    alarm(120);
     signal(SIGINT, ctrlCSignalLloyd);
 
     //Anem esperant a que s'escrigui a la memòria compartida
