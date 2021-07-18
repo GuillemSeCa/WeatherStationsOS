@@ -103,8 +103,8 @@ void *connectionHandler(void *auxSocket) {
     aux4[0] = '\0';
 
     //Iniciem el semaphore
-    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
-    SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
+    SEM_constructor_with_name(&jackSem, ftok("JackLib/Jack.c", 'a'));
+    SEM_constructor_with_name(&lloydSem, ftok("JackLib/Jack.c", 'b'));
     printf("RESULTAT FTOK JACK des de thread: %d\n", ftok("JackLib/Jack.c", 'a'));
     printf("RESULTAT FTOK LLOYD des de thread: %d\n", ftok("JackLib/Jack.c", 'b'));
     SEM_init(&jackSem, 0);

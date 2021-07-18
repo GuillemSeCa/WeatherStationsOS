@@ -71,7 +71,7 @@ void lloydProcess(){
     printf("RESULTAT FTOK LLOYD: %d\n", ftok("JackLib/Jack.c", 'b'));
 
     while(1) {
-        printf("DEBUG: WAAAAAAAAAAAIT\n");
+        printf("DEBUG: WAAAAAAAAAAAIT -_______-\n");
         SEM_wait(&lloydSem);
         printf("DEBUG: Començo a llegir mem compartida\n");
         printf("VALOR MEMORIA: %d\n", *num);
