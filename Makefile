@@ -13,6 +13,8 @@ Danny.o: DannyLib/Danny.c DannyLib/ReadFilesDanny.h DannyLib/ConfigDanny.h Danny
 Danny: DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/SocketsDanny.o DannyLib/Danny.o
 	gcc DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/SocketsDanny.o DannyLib/Danny.o -o Danny
 
+Semaphore_v2.o: JackLib/semaphore_v2.c JackLib/semaphore_v2.h
+	gcc -c JackLib/semaphore_v2.c -Wall -Wextra -D _GNU_SOURCE
 ConfigJack.o: JackLib/ConfigJack.c JackLib/ConfigJack.h
 	gcc -c JackLib/ConfigJack.c -Wall -Wextra
 SignalsJack.o: JackLib/SignalsJack.c JackLib/SignalsJack.h

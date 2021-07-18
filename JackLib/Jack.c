@@ -1,3 +1,5 @@
+//#define _GNU_SOURCE
+
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/shm.h>
@@ -15,6 +17,7 @@
 #include "ConfigJack.h"
 #include "SignalsJack.h"
 #include "SocketsJack.h"
+#include "semaphore_v2.h"
 
 //Constants
 #define MAX_CONNECTIONS 20
@@ -23,9 +26,12 @@
 #define HALLORANN_WRITING_MSG "Reescrivint la informacio a 'Hallorann.txt'\n"
 #define PATH_HALLORANN "Hallorann.txt"
 
+
 //Variables globals
 int memCompId, *num;
 ConfigJack configJack;
+semaphore jackSem;
+semaphore lloydSem;
 
 void writeFile() {
     int fdHallorann;
@@ -34,7 +40,7 @@ void writeFile() {
 
     //eliminem l'anterior fitxer i creem un nou en cas d'existir
     remove(PATH_HALLORANN);
-    fdHallorann = open(PATH_HALLORANN, O_CREAT | O_RDWR, 0644);
+    fdHallorann = open(PATH_HALLORANN, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
     /** TODO: guardar estadistiques al fitxer
     for(i = 0; i < ){
@@ -43,6 +49,15 @@ void writeFile() {
     **/
 
     close(fdHallorann);
+
+    //tornem a reprogramar la signal
+    signal(SIGALRM, writeFile); 
+    alarm(120);
+}
+
+void endLloyd(){
+    SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);
 }
 
 void lloydProcess(){
@@ -54,6 +69,30 @@ void lloydProcess(){
     //Reprogramem la signal Alarm per a que cada 2 minuts es reescrigui el fitxer de "Hallorann.txt"
     signal(SIGALRM, writeFile); 
     alarm(120);
+
+    //TODO: Descomentar
+    /**
+    signal(SIGINT, endLloyd);
+
+    //iniciem el semaphore
+    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
+    SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
+
+	SEM_init(&jackSem, 1);
+    SEM_init(&lloydSem, 0);
+
+    while(1){
+        SEM_wait(&lloydSem);
+        printf("DEBUG: Començo a llegir mem compartida\n");
+        //TODO: Lectura de mem compartida
+        sleep(5);
+        printf("DEBUG: ACABO a llegir mem compartida\n");
+
+        SEM_signal(&jackSem);
+    }
+
+    **/
+
     
     /*
     

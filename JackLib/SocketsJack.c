@@ -1,7 +1,13 @@
 #include "SocketsJack.h"
 
 //Variable global
+<<<<<<< HEAD
 int fdSocketServer, fdSocketClient, countClients, *clientPIDs, memCompId, *num;
+=======
+int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
+semaphore jackSem;
+semaphore lloydSem;
+>>>>>>> b11a30ed3b8a016837792d61a089d6e9099c9a9f
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -79,9 +85,6 @@ void serverRun() {
             if(estat < 0) {
                 write(1, MSG_ERR_CREATE, sizeof(MSG_ERR_CREATE));
             }
-            
-            //Esperar acabar thread abans d'acceptar nou thread
-            //pthread_join(threadId, NULL); //Comentat perquè Jack accepti múltiples connexions alhora (servidor dedicat)
         }
 	}
 	
@@ -103,6 +106,16 @@ void *connectionHandler(void *auxSocket) {
     aux2[0] = '\0';
     aux3[0] = '\0';
     aux4[0] = '\0';
+
+    //TODO: Descomentar
+    /**
+    //iniciem el semaphore
+    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
+    SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
+
+    //Esperem que Lloyd no estigui accedint a la memoria dinamica
+    SEM_wait(&jackSem);
+    **/
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
@@ -186,6 +199,7 @@ void *connectionHandler(void *auxSocket) {
                         x++;
                     }
                 }
+
                 if (error == 0) {
                     aux1[strlen(aux1)] = '\0';
                     aux2[strlen(aux2)] = '\0';
@@ -219,6 +233,15 @@ void *connectionHandler(void *auxSocket) {
             strcpy(paquet.dades, "DADES OK");
             paquet.dades[8] = '\0';
             write(sock, &paquet, sizeof(Packet));
+            //TODO: Descomentar
+            /**
+            printf("DEBUG: COMENÇO a guardar les coses a memoria compartida\n");
+            //TODO: Guardar-ho a memoria compartida
+            sleep(10);
+            printf("DEBUG: He guardat les coses a memoria compartida\n");
+
+            SEM_signal(&lloydSem);
+            **/
         } else {
             strcpy(paquet.origen, "JACK"); 
             paquet.origen[4] = '\0';
@@ -259,6 +282,9 @@ void closeServer() {
     clientPIDs = NULL;
     close(fdSocketServer);
     close(fdSocketClient);
+
+    SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);
 
 	exit(0);
 }

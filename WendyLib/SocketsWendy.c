@@ -123,9 +123,6 @@ void serverRun() {
             if(estat < 0) {
                 write(1, MSG_ERR_CREATE, sizeof(MSG_ERR_CREATE));
             }
-            
-            //Esperar acabar thread abans d'acceptar nou thread
-            //pthread_join(threadId, NULL); //Comentat perquè Wendy accepti múltiples connexions alhora (servidor dedicat)
         }
 	}
 	
@@ -287,7 +284,6 @@ void *connectionHandler(void *auxSocket) {
             image.md5sum = NULL;
             free(image.data);
             image.data = NULL;
-
             close(imatgefd);
         }
 
