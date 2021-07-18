@@ -1,10 +1,7 @@
 # Projecte1_SistemesOperatius
 
-# COSES A ACABAR
-
-- [ ] Passar a memoria dinamica el que es llegeix d'un fixter .txt
-- [ ] Arreglar que una foto peta
-- [ ] Dades d'una meteor es guardin be
+## Authors
+Practica realitzada per Miquel Zamora Hidalgo (miquel.zamora) i Guillem Serra Cazorla (guillem.serra) com a Sistema Operatiu per a estacions meteorològiques. 
 
 # Using the makefile
 Per tal de compilar les diferents dependències del projecte s'haurà de cridar al Makefile: 
