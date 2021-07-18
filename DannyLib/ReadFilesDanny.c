@@ -116,10 +116,51 @@ void sendStationsToServer(Station *stations, int numStations) {
     }
 }
 
+//Mètode per calcular el MD5SUM d'un fitxer
+void calculateMD5SUM(char md5sum[33], char imageFilePath[255]) {
+    int pipeFDs[2];
+    char resultExecvp[32];
+    pid_t pidFork;
+    char *commands[] = {"md5sum", imageFilePath, 0};
+    
+    //Creació Pipe per llegir les dades del fill fork
+    if (pipe(pipeFDs) == -1) {
+        write(1, "Error durant la creacio del pipe (Client Danny)!\n", 50);
+    }
+    
+    //Creació fork per poder executar la comanda md5sum a través de execvp
+    pidFork = fork();
+    switch (pidFork) {
+        //Error
+        case -1:
+            write(1, "Error durant la creacio del fork (Client Danny)!\n", 50);
+            break;
+        //Fill
+        case 0:
+            //Tanquem fd de lectura
+            close(pipeFDs[0]);
+            //Executem la comanda md5sum de la imatge i escrivim el resultat a través del pipe
+            dup2(pipeFDs[1], 1);
+            execvp(commands[0], commands);
+            close(pipeFDs[1]);
+            break;
+        //Pare
+        default:
+            //Tanquem fd d'escriptura
+            close(pipeFDs[1]);
+            //Llegim el resultat a través del pipe
+            read(pipeFDs[0], resultExecvp, 32);
+            strcpy(md5sum, resultExecvp);
+            md5sum[32] = '\0';
+            close(pipeFDs[0]);
+            break;
+    }
+}
+
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectory() {
     int countTextFiles = 0, countImageFiles = 0, i = 0, size = 0, imatgeToSend;
-    char textFilePath[255], aux[255], str[255], imageFilePath[255];
+    char textFilePath[255], aux[255], str[255], imageFilePath[255], md5sum[33];
     char *pathFolder = NULL;
     Packet paquet;
     off_t currentPos;
@@ -193,7 +234,6 @@ void readDirectory() {
                 
                 countTextFiles--;
             }
-
         }
         countTextFiles++;
     }
@@ -250,8 +290,8 @@ void readDirectory() {
             strcat(paquet.dades, str);
 
             //Calcular MD5SUM, afegir-ho al paquet, i enviar-lo
-            //TODO: Fer md5sum correctament
-            strcat(paquet.dades, "aaabbbaaabbbaaabbbaaabbbaaabbbaa\0");
+            calculateMD5SUM(md5sum, imageFilePath);
+            strcat(paquet.dades, md5sum);
             write(fdServerWendy, &paquet, sizeof(Packet));
             
            //Enviar la imatge en paquets dividits
@@ -264,7 +304,7 @@ void readDirectory() {
             read(imatgeToSend, &paquet.dades, sizeof(char)*size);
             write(fdServerWendy, &paquet, sizeof(Packet));
 
-            printf("DEBUG: s'acaba d'enviar la imatge (ultim paquet)\n");
+            //printf("DEBUG: s'acaba d'enviar la imatge (ultim paquet)\n");
 
             //Tanquem i eliminem la imatge
             imageFilePath[strlen(imageFilePath)] = '\0';
@@ -317,8 +357,7 @@ void readDirectory() {
             write(1, "Sending ", 9);
             write(1, images[i].fileName, strlen(images[i].fileName));
             write(1, "\n", 1);
-
-            printf("DEBUG: nameFileImage = %s\n", images[i].fileName);
+            //printf("DEBUG: nameFileImage = %s\n", images[i].fileName);
         }
         write(1, "Data sent\n", 11);
     }

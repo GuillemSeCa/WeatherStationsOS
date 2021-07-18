@@ -39,6 +39,9 @@ char *readUntil(int fd, char end);
 //Mètode per llegir un fitxer de text fins a cert caràcter, però afegint que retorni si és final del fitxer
 char *readUntilEnd(int fd, char end, int *endFile);
 
+//Mètode per calcular el MD5SUM d'un fitxer
+void calculateMD5SUM(char md5sum[33], char imageFilePath[255]);
+
 //Mètode per llegir la carpeta i tots els fitxers del seu interior
 void readDirectory();
 

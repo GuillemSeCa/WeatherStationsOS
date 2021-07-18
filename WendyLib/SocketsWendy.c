@@ -3,6 +3,47 @@
 //Variables global
 int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
 
+//Mètode per calcular el MD5SUM d'un fitxer
+void calculateMD5SUM(char md5sum[33], char imageFilePath[255]) {
+    int pipeFDs[2];
+    char resultExecvp[32];
+    pid_t pidFork;
+    char *commands[] = {"md5sum", imageFilePath, 0};
+    
+    //Creació Pipe per llegir les dades del fill fork
+    if (pipe(pipeFDs) == -1) {
+        write(1, "Error durant la creacio del pipe (Client Danny)!\n", 50);
+    }
+    
+    //Creació fork per poder executar la comanda md5sum a través de execvp
+    pidFork = fork();
+    switch (pidFork) {
+        //Error
+        case -1:
+            write(1, "Error durant la creacio del fork (Client Danny)!\n", 50);
+            break;
+        //Fill
+        case 0:
+            //Tanquem fd de lectura
+            close(pipeFDs[0]);
+            //Executem la comanda md5sum de la imatge i escrivim el resultat a través del pipe
+            dup2(pipeFDs[1], 1);
+            execvp(commands[0], commands);
+            close(pipeFDs[1]);
+            break;
+        //Pare
+        default:
+            //Tanquem fd d'escriptura
+            close(pipeFDs[1]);
+            //Llegim el resultat a través del pipe
+            read(pipeFDs[0], resultExecvp, 32);
+            strcpy(md5sum, resultExecvp);
+            md5sum[32] = '\0';
+            close(pipeFDs[0]);
+            break;
+    }
+}
+
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigWendy configWendy) {
     struct sockaddr_in serverSocket;
@@ -99,11 +140,12 @@ void serverRun() {
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
     int imatgefd, numImages, i, j, x, tipusDadaActual, error = 0, pos = 0, k = 0, delete = 0, size = 0;
-    char aux[20], pathImage[255];
+    char aux[20], pathImage[255], aux2[255], md5sum[33], aux3[33];
     int sock = *(int*)auxSocket;
     Packet paquet;
     Image image;
     aux[0] = '\0';
+    md5sum[0] = '\0';
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
@@ -158,7 +200,7 @@ void *connectionHandler(void *auxSocket) {
                                 }
                                 break;
                             case 2:
-                                image.md5sum[x]= paquet.dades[j];
+                                image.md5sum[x] = paquet.dades[j];
                                 if(x > 31) {
                                     error = 1;
                                 }
@@ -171,7 +213,7 @@ void *connectionHandler(void *auxSocket) {
                 }
                 if (error == 0) {
                     image.fileName[strlen(image.fileName)] = '\0';
-                    image.md5sum[31] = '\0';
+                    image.md5sum[32] = '\0';
                     image.size = atoi(aux);
 
                     //Mostrem per pantalla la informació de l'imatge rebuda
@@ -182,17 +224,19 @@ void *connectionHandler(void *auxSocket) {
                 error = 1;
             }
 
+            //printf("DEBUG: Paquet Name#Size#MD5SUM rebut!\n");
             //Reservem memòria per rebre la imatge
-            image.data = (char *) malloc(sizeof(char) * image.size+1);
+            image.data = (char *) malloc(sizeof(char) * (image.size+1));
             image.data[0] = '\0';
             size = image.size;
 
+            //printf("DEBUG: Comencem lectura imatge\n");
             //Anem llegint i obtenint tots els paquets dividits amb els bytes de la imatge
             pos = 0;
             delete = 0;
             while (size > 100) {
                 read(sock, &paquet, sizeof(Packet));
-                for(k=0; k < 100; k++){
+                for (k=0; k < 100; k++) {
                     image.data[pos] = paquet.dades[k];
                     image.data[pos+1] = '\0';
                     pos++;
@@ -200,8 +244,11 @@ void *connectionHandler(void *auxSocket) {
                 size -= 100;
                 delete++;
             }
+            //printf("DEBUG: Llegim ultim paquet\n");
             //Llegim últim paquet amb les dades restants (menys de 100 bytes)
             read(sock, &paquet, sizeof(Packet));
+            //TODO: mirar si descomentar o no per emplenar amb \0's final com diu enunciat
+            //paquet.dades[strlen(paquet.dades)] = '\0';
             for (k = 0; k < size; k++) {
                 image.data[pos] = paquet.dades[k];
                 pos++;
@@ -213,11 +260,22 @@ void *connectionHandler(void *auxSocket) {
             strcat(pathImage, "/\0");
             strcat(pathImage, image.fileName);
 
-            //Guardem la imatge al directori 
-            //0644
+            //Guardem la imatge al directori
+            //printf("DEBUG: Me proposo a escriure! %s\n", image.fileName);
             imatgefd = open(pathImage, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            printf("DEBUG: Me proposo a escriure! %s\n", image.fileName);
             write(imatgefd, image.data, image.size);
+
+            //printf("DEBUG: Comparar i calcular md5sum!\n");
+            //Comprovem MD5SUM de la imatge
+            strcpy(aux2, "./\0");
+            strcat(aux2, pathImage);
+            aux2[strlen(aux2)] = '\0';
+            calculateMD5SUM(md5sum, aux2);
+            strcpy(aux3, image.md5sum);
+            aux3[32] = '\0';
+            if (strcmp(md5sum, aux3) != 0) {
+                error = 1;
+            }
 
             //Alliberem el que ja no faci falta
             free(image.fileName);

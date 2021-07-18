@@ -41,6 +41,9 @@ typedef struct {
     char *data;
 } Image;
 
+//Mètode per calcular el MD5SUM d'un fitxer
+void calculateMD5SUM(char md5sum[33], char imageFilePath[255]);
+
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigWendy configWendy);
 
