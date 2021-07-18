@@ -1,0 +1,5 @@
+Nombre total lectures: 4
+Mitjana humitat: 54
+Mitjana temperatura: 9.7
+Mitjana pressio: 1015.2
+Mitjana precipitacio: 2.0

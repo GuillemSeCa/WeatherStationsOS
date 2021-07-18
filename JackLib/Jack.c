@@ -22,56 +22,37 @@
 #define MAX_CONNECTIONS 20
 #define MSG_BENVINGUDA "\nStarting Jack...\n\n"
 #define MSG_ERROR_ARGUMENTS "ERROR! Falten o sobren arguments!"
-#define HALLORANN_WRITING_MSG "Reescrivint la informacio a 'Hallorann.txt'\n"
-#define PATH_HALLORANN "Hallorann.txt"
 
 //Variables globals
 int memCompId;
 ConfigJack configJack;
 semaphore jackSem, lloydSem;
 Station *stationShared;
+Hallorann estacio;
 
-void writeFile() {
-    int fdHallorann;
-
-    write(1, HALLORANN_WRITING_MSG, sizeof(HALLORANN_WRITING_MSG));
-
-    //Eliminem l'anterior fitxer i creem un nou en cas d'existir
-    remove(PATH_HALLORANN);
-    fdHallorann = open(PATH_HALLORANN, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-    //Guardar la info
-    /** TODO: guardar estadistiques al fitxer
-    for(i = 0; i < ){
-
-    }
-    **/
-
-    close(fdHallorann);
-
-    //tornem a reprogramar la signal
-    signal(SIGALRM, writeFile); 
-    alarm(120);
-}
-
-void lloydProcess(){
-    //Array estacions, crear un nou struct
-    int countLectures = 0, totalHumidity = 0;
-    float totalTemperature = 0.0f, totalAtmospheric = 0.0f, totalPrecipitation = 0.0f;
+//Mètode que executarà el Fork
+void lloydProcess() {
+    //Inicialitzem el valor de l'estació
+    estacio.countLectures = 0;
+    estacio.totalHumidity = 0;
+    estacio.totalTemperature = 0.0f;
+    estacio.totalAtmospheric = 0.0f;
+    estacio.totalPrecipitation = 0.0f;
 
     //Reprogramem la signal Alarm per a que cada 2 minuts es reescrigui el fitxer de "Hallorann.txt"
-    signal(SIGALRM, writeFile); 
-    //alarm(120);
+    signal(SIGALRM, writeFile);
+    //TODO: Canviar a 120 (cada 2 minuts)
+    alarm(10);
     signal(SIGINT, ctrlCSignalLloyd);
 
+    //Anem esperant a que s'escrigui a la memòria compartida
     while(1) {
         SEM_wait(&jackSem);
-        countLectures++;
-        totalTemperature += stationShared->temperature;
-        totalHumidity += stationShared->humidity;
-        totalAtmospheric += stationShared->atmosphericPressure;
-        totalPrecipitation += stationShared->precipitation;
-        printf("VALOR TOTAL: %d %.1f %d %.1f %.1f\n", countLectures, totalTemperature, totalHumidity, totalAtmospheric, totalPrecipitation);
+        estacio.countLectures++;
+        estacio.totalTemperature += stationShared->temperature;
+        estacio.totalHumidity += stationShared->humidity;
+        estacio.totalAtmospheric += stationShared->atmosphericPressure;
+        estacio.totalPrecipitation += stationShared->precipitation;
         SEM_signal(&lloydSem);
     }
 }
