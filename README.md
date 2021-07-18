@@ -28,7 +28,7 @@ $ Danny ConfigDanny3.dat
 ```
 
 # Extra memory
-En cas de falta de memòria, per solucionar-ho es pot executar el fitxer:
+En cas de falta de memòria, es pot netejar executant el fitxer:
 ```sh
 $ limpiador_de_memoria_v2.sh
 ```
