@@ -33,6 +33,9 @@ void calculateMD5SUM(char md5sum[33], char imageFilePath[255]) {
             break;
         //Pare
         default:
+            //TODO: Mirar si descomentant funciona
+            //Esperar acabi fill calcular md5um
+            //wait(pidFork);
             //Tanquem fd d'escriptura
             close(pipeFDs[1]);
             //Llegim el resultat a través del pipe

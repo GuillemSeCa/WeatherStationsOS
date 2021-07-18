@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/shm.h>
 #include <netinet/in.h>
 #include "ConfigJack.h"
 #include "SignalsJack.h"

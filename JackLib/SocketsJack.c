@@ -1,7 +1,7 @@
 #include "SocketsJack.h"
 
 //Variable global
-int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
+int fdSocketServer, fdSocketClient, countClients, *clientPIDs, memCompId, *num;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -203,6 +203,8 @@ void *connectionHandler(void *auxSocket) {
                     sprintf(aux, "%s\n%s\n%.1f\n%d\n%.1f\n%.1f\n", stations[i].date, stations[i].hour, stations[i].temperature, stations[i].humidity, stations[i].atmosphericPressure, stations[i].precipitation);
                     aux[strlen(aux)] = '\0';
                     write(1, aux, strlen(aux));
+
+                    //Guardem a memòria compartida les dades
                 }
             } else {
                 error = 1;
@@ -250,6 +252,9 @@ void *connectionHandler(void *auxSocket) {
 
 //Mètode per tancar el servidor
 void closeServer() {
+    shmdt(num);
+    shmctl(memCompId, IPC_RMID, NULL);
+
     free(clientPIDs);
     clientPIDs = NULL;
     close(fdSocketServer);

@@ -24,7 +24,9 @@
 #define PATH_HALLORANN "Hallorann.txt"
 
 //Variables globals
+int memCompId, *num;
 ConfigJack configJack;
+
 void writeFile() {
     int fdHallorann;
 
@@ -49,14 +51,9 @@ void lloydProcess(){
     //Stations *data;
     //int mode;
 
-    
-
     //Reprogramem la signal Alarm per a que cada 2 minuts es reescrigui el fitxer de "Hallorann.txt"
     signal(SIGALRM, writeFile); 
     alarm(120);
-
-
-
     
     /*
     
@@ -109,32 +106,63 @@ int main(int argc, char **argv) {
     signal(SIGINT, ctrlCSignal);
     signal(SIGKILL, ctrlCSignal);
 
+    //Creem regió memòria compartida
+    memCompId = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT|IPC_EXCL|0600);
+    if (memCompId > 0) {
+        //Lliguem les adreces i obtenim el punter de la memòria
+        num = shmat(memCompId, 0, 0);
+    } else {
+        write(1, "Error al crear la regió de memòria compartida!\n", 50);
+    }
+
     //Fork per Lloyd
     pid = fork();
     if (pid == 0) {
+        
         //Child
         //TODO: Descomentar
-        lloydProcess();
-        raise(SIGKILL);
+        //lloydProcess();
+
+        //Memòria compartida
+        sleep(1);
+        printf("VALOR MEMORIA: %d\n", *num);
+        sleep(2);
+        printf("VALOR MEMORIA: %d\n", *num);
+        //Deslliguem les adreces
+        shmdt(num);
     }
     else if (pid > 0) {
         //Parent
-        
+
         //Missatge benvinguda
         write(1, MSG_BENVINGUDA, strlen(MSG_BENVINGUDA));
 
         //Llegim el fitxer de configuració per obtenir la IP i Port d'aquest server Jack
         readConfigFileJack(&configJack, argv[1]);
 
+        //Memòria compartida
+        *num = 5;
+        sleep(2);
+        *num = 10;
+
         //Preparem la configuració d'aquest servidor Jack
         launchServer(configJack);
         
         //Iniciem el servidor i esperem connexió dels Clients Danny
         serverRun();
+
+        //Deslliguem les adreces
+        shmdt(num);
+        //Eliminem la regió compartida
+        shmctl(memCompId, IPC_RMID, NULL);
     }
 
     //Alliberem tota la memòria dinàmica restant i tanquem tot
     closeServer();
+    //Deslliguem les adreces
+    shmdt(num);
+    //Eliminem la regió compartida
+    shmctl(memCompId, IPC_RMID, NULL);
 
     return 0;
 }
