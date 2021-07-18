@@ -19,7 +19,13 @@ Per executar el Servidor Wendy haurem de fer la crida següent:
 ```sh
 $ Wendy ConfigWendy.dat
 ```
-Per executar els diferents Clients Danny haurem d'anar fent la crida següent:
+Per executar els diferents Clients Danny (servidor dedicat) haurem d'anar fent la crida següent:
 ```sh
 $ Danny ConfigDanny.dat
+```
+```sh
+$ Danny ConfigDanny2.dat
+```
+```sh
+$ Danny ConfigDanny3.dat
 ```
