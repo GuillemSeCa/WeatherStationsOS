@@ -20,3 +20,6 @@
 
 //Mètode per substituir el funcionament del signal CTRL+C
 void ctrlCSignal();
+
+//Mètode per substituir el funcionament del signal CTRL+C per Lloyd
+void ctrlCSignalLloyd();

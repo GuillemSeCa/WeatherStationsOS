@@ -297,7 +297,7 @@ void readDirectory() {
             strcat(paquet.dades, md5sum);
             write(fdServerWendy, &paquet, sizeof(Packet));
             
-           //Enviar la imatge en paquets dividits
+            //Enviar la imatge en paquets dividits
             paquet.tipus = 'F';
             while(read(imatgeToSend, &paquet.dades, sizeof(char)*100) > 0 && size > 100) {
                 write(fdServerWendy, &paquet, sizeof(Packet));

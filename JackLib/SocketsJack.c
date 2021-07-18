@@ -1,8 +1,9 @@
 #include "SocketsJack.h"
 
 //Variable global
-int fdSocketServer, fdSocketClient, countClients, *clientPIDs, memCompId, *num;
+int fdSocketServer, fdSocketClient, countClients, *clientPIDs, memCompId;
 semaphore jackSem, lloydSem;
+Station *stationShared;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -101,14 +102,6 @@ void *connectionHandler(void *auxSocket) {
     aux2[0] = '\0';
     aux3[0] = '\0';
     aux4[0] = '\0';
-
-    //Iniciem el semaphore
-    SEM_constructor_with_name(&jackSem, ftok("JackLib/Jack.c", 'a'));
-    SEM_constructor_with_name(&lloydSem, ftok("JackLib/Jack.c", 'b'));
-    printf("RESULTAT FTOK JACK des de thread: %d\n", ftok("JackLib/Jack.c", 'a'));
-    printf("RESULTAT FTOK LLOYD des de thread: %d\n", ftok("JackLib/Jack.c", 'b'));
-    SEM_init(&jackSem, 0);
-    SEM_init(&lloydSem, 1);
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
@@ -212,12 +205,10 @@ void *connectionHandler(void *auxSocket) {
                     write(1, aux, strlen(aux));
 
                     //Esperem que Lloyd no estigui accedint a la memoria dinamica
-                    SEM_wait(&jackSem);
+                    SEM_wait(&lloydSem);
                     //Guardem a memòria compartida les dades
-                    printf("DEBUG: COMENÇO a guardar les coses a memoria compartida\n");
-                    *num = 44;
-                    printf("DEBUG: He guardat les coses a memoria compartida\n");
-                    SEM_signal(&lloydSem);
+                    *stationShared = stations[i];
+                    SEM_signal(&jackSem);
                 }
             } else {
                 error = 1;
@@ -273,16 +264,10 @@ void *connectionHandler(void *auxSocket) {
 
 //Mètode per tancar el servidor
 void closeServer() {
-    shmdt(num);
-    shmctl(memCompId, IPC_RMID, NULL);
-
     free(clientPIDs);
     clientPIDs = NULL;
     close(fdSocketServer);
     close(fdSocketClient);
-
-    SEM_destructor(&jackSem);
-    SEM_destructor(&lloydSem);
 
 	exit(0);
 }
