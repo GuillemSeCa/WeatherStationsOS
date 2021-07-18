@@ -278,8 +278,8 @@ void closeServer() {
     close(fdSocketClient);
 
     //TODO: Descomentar
-    /*SEM_destructor(&jackSem);
-    SEM_destructor(&lloydSem);*/
+    SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);
 
 	exit(0);
 }

@@ -13,7 +13,7 @@ Danny.o: DannyLib/Danny.c DannyLib/ReadFilesDanny.h DannyLib/ConfigDanny.h Danny
 Danny: DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/SocketsDanny.o DannyLib/Danny.o
 	gcc DannyLib/ReadFilesDanny.o DannyLib/ConfigDanny.o DannyLib/SignalsDanny.o DannyLib/SocketsDanny.o DannyLib/Danny.o -o Danny
 
-Semaphore_v2.o: JackLib/semaphore_v2.c JackLib/semaphore_v2.h
+semaphore_v2.o: JackLib/semaphore_v2.c JackLib/semaphore_v2.h
 	gcc -c JackLib/semaphore_v2.c -Wall -Wextra -D _GNU_SOURCE
 ConfigJack.o: JackLib/ConfigJack.c JackLib/ConfigJack.h
 	gcc -c JackLib/ConfigJack.c -Wall -Wextra
@@ -21,10 +21,10 @@ SignalsJack.o: JackLib/SignalsJack.c JackLib/SignalsJack.h
 	gcc -c JackLib/SignalsJack.c -Wall -Wextra
 SocketsJack.o: JackLib/SocketsJack.c JackLib/SocketsJack.h
 	gcc -c JackLib/SocketsJack.c -Wall -Wextra
-Jack.o: JackLib/Jack.c JackLib/ConfigJack.h JackLib/SignalsJack.h JackLib/SocketsJack.h
+Jack.o: JackLib/Jack.c JackLib/ConfigJack.h JackLib/SignalsJack.h JackLib/SocketsJack.h JackLib/semaphore_v2.h
 	gcc -c JackLib/Jack.c -Wall -Wextra
-Jack: JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o JackLib/Jack.o
-	gcc JackLib/Jack.o JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o -o Jack -lpthread
+Jack: JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o semaphore_v2.o JackLib/Jack.o
+	gcc JackLib/Jack.o JackLib/ConfigJack.o JackLib/SignalsJack.o JackLib/SocketsJack.o semaphore_v2.o -o Jack -lpthread
 
 ConfigWendy.o: WendyLib/ConfigWendy.c WendyLib/ConfigWendy.h
 	gcc -c WendyLib/ConfigWendy.c -Wall -Wextra

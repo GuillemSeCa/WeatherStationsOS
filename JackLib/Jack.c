@@ -69,7 +69,7 @@ void lloydProcess(){
     alarm(120);
 
     //TODO: Descomentar
-    /**
+    
     signal(SIGINT, endLloyd);
 
     //iniciem el semaphore
@@ -79,7 +79,7 @@ void lloydProcess(){
 	SEM_init(&jackSem, 1);
     SEM_init(&lloydSem, 0);
 
-    while(1){
+    /*while(1){
         SEM_wait(&lloydSem);
         printf("DEBUG: Començo a llegir mem compartida\n");
         //TODO: Lectura de mem compartida
