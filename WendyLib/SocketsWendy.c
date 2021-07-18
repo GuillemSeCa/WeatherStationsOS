@@ -144,6 +144,7 @@ void *connectionHandler(void *auxSocket) {
                         switch (tipusDadaActual) {
                             case 0:
                                 image.fileName[x]= paquet.dades[j];
+                                image.fileName[x+1] = '\0';
                                 //Controlem format dades correcte
                                 if(x > 29) {
                                     error = 1;
@@ -203,6 +204,7 @@ void *connectionHandler(void *auxSocket) {
             read(sock, &paquet, sizeof(Packet));
             for (k = 0; k < size; k++) {
                 image.data[pos] = paquet.dades[k];
+                pos++;
             }
 
             //Path de Barry on guardar les imatges
@@ -211,8 +213,10 @@ void *connectionHandler(void *auxSocket) {
             strcat(pathImage, "/\0");
             strcat(pathImage, image.fileName);
 
-            //Guardem la imatge al directori
-            imatgefd = open(pathImage, O_WRONLY | O_APPEND | O_CREAT, 0644);
+            //Guardem la imatge al directori 
+            //0644
+            imatgefd = open(pathImage, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            printf("DEBUG: Me proposo a escriure! %s\n", image.fileName);
             write(imatgefd, image.data, image.size);
 
             //Alliberem el que ja no faci falta

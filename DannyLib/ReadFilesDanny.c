@@ -264,6 +264,8 @@ void readDirectory() {
             read(imatgeToSend, &paquet.dades, sizeof(char)*size);
             write(fdServerWendy, &paquet, sizeof(Packet));
 
+            printf("DEBUG: s'acaba d'enviar la imatge (ultim paquet)\n");
+
             //Tanquem i eliminem la imatge
             imageFilePath[strlen(imageFilePath)] = '\0';
             memmove(imageFilePath, imageFilePath + 2, strlen(imageFilePath));
@@ -315,6 +317,8 @@ void readDirectory() {
             write(1, "Sending ", 9);
             write(1, images[i].fileName, strlen(images[i].fileName));
             write(1, "\n", 1);
+
+            printf("DEBUG: nameFileImage = %s\n", images[i].fileName);
         }
         write(1, "Data sent\n", 11);
     }
