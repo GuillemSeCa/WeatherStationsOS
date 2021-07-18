@@ -102,14 +102,13 @@ void *connectionHandler(void *auxSocket) {
     aux3[0] = '\0';
     aux4[0] = '\0';
 
-    //TODO: Descomentar
     //Iniciem el semaphore
-    /*SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
+    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
     SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
-
-    //Esperem que Lloyd no estigui accedint a la memoria dinamica
-    SEM_wait(&jackSem);
-    */
+    printf("RESULTAT FTOK JACK des de thread: %d\n", ftok("JackLib/Jack.c", 'a'));
+    printf("RESULTAT FTOK LLOYD des de thread: %d\n", ftok("JackLib/Jack.c", 'b'));
+    SEM_init(&jackSem, 0);
+    SEM_init(&lloydSem, 1);
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
@@ -212,8 +211,13 @@ void *connectionHandler(void *auxSocket) {
                     aux[strlen(aux)] = '\0';
                     write(1, aux, strlen(aux));
 
+                    //Esperem que Lloyd no estigui accedint a la memoria dinamica
+                    SEM_wait(&jackSem);
                     //Guardem a memòria compartida les dades
-                    *num = 33;
+                    printf("DEBUG: COMENÇO a guardar les coses a memoria compartida\n");
+                    *num = 44;
+                    printf("DEBUG: He guardat les coses a memoria compartida\n");
+                    SEM_signal(&lloydSem);
                 }
             } else {
                 error = 1;
@@ -277,7 +281,6 @@ void closeServer() {
     close(fdSocketServer);
     close(fdSocketClient);
 
-    //TODO: Descomentar
     SEM_destructor(&jackSem);
     SEM_destructor(&lloydSem);
 

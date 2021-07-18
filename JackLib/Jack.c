@@ -53,43 +53,34 @@ void writeFile() {
 }
 
 void endLloyd(){
-    //TODO: Descomentar
-    /*SEM_destructor(&jackSem);
-    SEM_destructor(&lloydSem);*/
+    SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);
 }
 
 void lloydProcess(){
-    //key_t key;
-    //int shmid;
-    //Stations *data;
-    //int mode;
-
     //Reprogramem la signal Alarm per a que cada 2 minuts es reescrigui el fitxer de "Hallorann.txt"
     signal(SIGALRM, writeFile); 
     alarm(120);
 
-    //TODO: Descomentar
-    
     signal(SIGINT, endLloyd);
 
     //iniciem el semaphore
-    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
-    SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
+    SEM_constructor_with_name(&jackSem, ftok("JackLib/Jack.c", 'a'));
+    SEM_constructor_with_name(&lloydSem, ftok("JackLib/Jack.c", 'b'));
+    printf("RESULTAT FTOK JACK: %d\n", ftok("JackLib/Jack.c", 'a'));
+    printf("RESULTAT FTOK LLOYD: %d\n", ftok("JackLib/Jack.c", 'b'));
 
-	SEM_init(&jackSem, 1);
-    SEM_init(&lloydSem, 0);
-
-    /*while(1){
+    while(1) {
+        printf("DEBUG: WAAAAAAAAAAAIT\n");
         SEM_wait(&lloydSem);
         printf("DEBUG: Començo a llegir mem compartida\n");
-        //TODO: Lectura de mem compartida
-        sleep(5);
+        printf("VALOR MEMORIA: %d\n", *num);
         printf("DEBUG: ACABO a llegir mem compartida\n");
-
         SEM_signal(&jackSem);
-    }
 
-    **/
+        //Deslliguem les adreces
+        //shmdt(num);
+    }
     
     /*
     if (argc > 2) {
@@ -153,16 +144,9 @@ int main(int argc, char **argv) {
     //Fork per Lloyd
     pid = fork();
     if (pid == 0) {
-        
         //Child
-        //TODO: Descomentar
-        //lloydProcess();
+        lloydProcess();
 
-        //Memòria compartida
-        sleep(1);
-        printf("VALOR MEMORIA: %d\n", *num);
-        sleep(10);
-        printf("VALOR MEMORIA: %d\n", *num);
         //Deslliguem les adreces
         shmdt(num);
     }

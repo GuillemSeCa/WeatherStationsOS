@@ -259,7 +259,6 @@ void *connectionHandler(void *auxSocket) {
             strcat(pathImage, "Barry\0");
             strcat(pathImage, "/\0");
             strcat(pathImage, image.fileName);
-            printf("%s\n", pathImage);
 
             //Guardem la imatge al directori
             //printf("DEBUG: Me proposo a escriure! %s\n", image.fileName);
