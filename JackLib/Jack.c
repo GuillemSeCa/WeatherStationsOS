@@ -1,5 +1,4 @@
 //#define _GNU_SOURCE
-
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/shm.h>
@@ -26,12 +25,10 @@
 #define HALLORANN_WRITING_MSG "Reescrivint la informacio a 'Hallorann.txt'\n"
 #define PATH_HALLORANN "Hallorann.txt"
 
-
 //Variables globals
 int memCompId, *num;
 ConfigJack configJack;
-semaphore jackSem;
-semaphore lloydSem;
+semaphore jackSem, lloydSem;
 
 void writeFile() {
     int fdHallorann;
@@ -56,8 +53,9 @@ void writeFile() {
 }
 
 void endLloyd(){
-    SEM_destructor(&jackSem);
-    SEM_destructor(&lloydSem);
+    //TODO: Descomentar
+    /*SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);*/
 }
 
 void lloydProcess(){
@@ -92,10 +90,8 @@ void lloydProcess(){
     }
 
     **/
-
     
     /*
-    
     if (argc > 2) {
         fprintf(stderr, "usage: shmdemo [data_to_write]\n");
         exit(1);
@@ -165,7 +161,7 @@ int main(int argc, char **argv) {
         //Memòria compartida
         sleep(1);
         printf("VALOR MEMORIA: %d\n", *num);
-        sleep(2);
+        sleep(10);
         printf("VALOR MEMORIA: %d\n", *num);
         //Deslliguem les adreces
         shmdt(num);
@@ -181,8 +177,6 @@ int main(int argc, char **argv) {
 
         //Memòria compartida
         *num = 5;
-        sleep(2);
-        *num = 10;
 
         //Preparem la configuració d'aquest servidor Jack
         launchServer(configJack);

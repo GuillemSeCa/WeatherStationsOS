@@ -1,12 +1,9 @@
 /*
 * Mòdul amb els mètodes que treballen amb Sockets
 */
-
 #pragma once
 
-
 //#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,8 +26,6 @@
 #include "semaphore_v2.h"
 
 //Constants
-
-
 #define MAX_CONNECTIONS 20
 #define MSG_JACK "$Jack:\n"
 #define MSG_WAITING "Waiting..."
@@ -39,8 +34,6 @@
 #define MSG_ERR_BIND "Error durant el bind del port (Servidor Jack)!\n"
 #define MSG_ERR_CREATE "Error al crear un nou thread (Servidor Jack)!\n"
 #define MSG_ERR_ACCEPT "Error al crear acceptar la connexió d'un nou client al Servidor Jack!\n"
-
-
 
 //Estructura per guardar les dades d'una estació
 typedef struct {

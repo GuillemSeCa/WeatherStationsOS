@@ -1,13 +1,8 @@
 #include "SocketsJack.h"
 
 //Variable global
-<<<<<<< HEAD
 int fdSocketServer, fdSocketClient, countClients, *clientPIDs, memCompId, *num;
-=======
-int fdSocketServer, fdSocketClient, countClients, *clientPIDs;
-semaphore jackSem;
-semaphore lloydSem;
->>>>>>> b11a30ed3b8a016837792d61a089d6e9099c9a9f
+semaphore jackSem, lloydSem;
 
 //Mètode per configurar el servidor abans d'iniciar-lo
 int launchServer(ConfigJack configJack) {
@@ -108,14 +103,13 @@ void *connectionHandler(void *auxSocket) {
     aux4[0] = '\0';
 
     //TODO: Descomentar
-    /**
-    //iniciem el semaphore
-    SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
+    //Iniciem el semaphore
+    /*SEM_constructor_with_name(&jackSem, ftok("Jack.c", 'a'));
     SEM_constructor_with_name(&lloydSem, ftok("Jack.c", 'b'));
 
     //Esperem que Lloyd no estigui accedint a la memoria dinamica
     SEM_wait(&jackSem);
-    **/
+    */
 
     //Llegim el PID d'aquest Danny
     read(sock, &clientPIDs[countClients - 1], sizeof(int));
@@ -219,6 +213,7 @@ void *connectionHandler(void *auxSocket) {
                     write(1, aux, strlen(aux));
 
                     //Guardem a memòria compartida les dades
+                    *num = 33;
                 }
             } else {
                 error = 1;
@@ -239,7 +234,6 @@ void *connectionHandler(void *auxSocket) {
             //TODO: Guardar-ho a memoria compartida
             sleep(10);
             printf("DEBUG: He guardat les coses a memoria compartida\n");
-
             SEM_signal(&lloydSem);
             **/
         } else {
@@ -283,8 +277,9 @@ void closeServer() {
     close(fdSocketServer);
     close(fdSocketClient);
 
-    SEM_destructor(&jackSem);
-    SEM_destructor(&lloydSem);
+    //TODO: Descomentar
+    /*SEM_destructor(&jackSem);
+    SEM_destructor(&lloydSem);*/
 
 	exit(0);
 }

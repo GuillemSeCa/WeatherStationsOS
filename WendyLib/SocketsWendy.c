@@ -139,7 +139,7 @@ void serverRun() {
 
 //Mètode que controlarà el comportament dels threads
 void *connectionHandler(void *auxSocket) {
-    int imatgefd, numImages, i, j, x, tipusDadaActual, error = 0, pos = 0, k = 0, delete = 0, size = 0;
+    int /*imatgefd,*/ numImages, i, j, x, tipusDadaActual, error = 0, pos = 0, k = 0, delete = 0, size = 0;
     char aux[20], pathImage[255], aux2[255], md5sum[33], aux3[33];
     int sock = *(int*)auxSocket;
     Packet paquet;
@@ -259,11 +259,13 @@ void *connectionHandler(void *auxSocket) {
             strcat(pathImage, "Barry\0");
             strcat(pathImage, "/\0");
             strcat(pathImage, image.fileName);
+            printf("%s\n", pathImage);
 
             //Guardem la imatge al directori
             //printf("DEBUG: Me proposo a escriure! %s\n", image.fileName);
-            imatgefd = open(pathImage, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            write(imatgefd, image.data, image.size);
+            //TODO: Descomentar
+            //imatgefd = open(pathImage, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            //write(imatgefd, image.data, image.size);
 
             //printf("DEBUG: Comparar i calcular md5sum!\n");
             //Comprovem MD5SUM de la imatge
@@ -284,7 +286,8 @@ void *connectionHandler(void *auxSocket) {
             image.md5sum = NULL;
             free(image.data);
             image.data = NULL;
-            close(imatgefd);
+            //TODO: Descomentar
+            //close(imatgefd);
         }
 
         //Informem a Danny de que les dades són correctes o incorrectes

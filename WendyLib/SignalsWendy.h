@@ -3,7 +3,6 @@
 */
 #pragma once
 
-#define _POSIX_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,4 +1,3 @@
-
 #include "semaphore_v2.h"
 /**
  * This file provides a simple but useful abstraction for

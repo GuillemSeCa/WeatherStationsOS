@@ -10,6 +10,7 @@ Wendy
 /JackLib/ConfigJack.o
 /JackLib/SignalsJack.o
 /JackLib/SocketsJack.o
+/JackLib/Semaphore_v2.o
 /WendyLib/Wendy.o
 /WendyLib/ConfigWendy.o
 /WendyLib/SignalsWendy.o
