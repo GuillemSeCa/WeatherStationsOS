@@ -3,23 +3,12 @@
 */
 #pragma once
 
-//#define _GNU_SOURCE
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
 #include <pthread.h>
-#include <time.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/shm.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include "ConfigJack.h"
 #include "SignalsJack.h"
@@ -36,7 +25,8 @@
 #define MSG_ERR_ACCEPT "Error al crear acceptar la connexió d'un nou client al Servidor Jack!\n"
 
 //Estructura per guardar les dades d'una estació
-typedef struct {
+typedef struct
+{
     char *fileName;
     char *date;
     char *hour;
@@ -47,7 +37,8 @@ typedef struct {
 } Station;
 
 //Estructura per guardar els paquets
-typedef struct {
+typedef struct
+{
     char origen[14];
     char tipus;
     char dades[100];

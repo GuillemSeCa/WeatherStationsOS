@@ -28,22 +28,27 @@ int fdServer, fdServerWendy;
 Config config;
 
 //Mètode per eliminar un caràcter
-void removeChar(char *str, char garbage) {
+void removeChar(char *str, char garbage)
+{
     char *src, *dst;
-    for (src = dst = str; *src != '\0'; src++) {
+    for (src = dst = str; *src != '\0'; src++)
+    {
         *dst = *src;
-        if (*dst != garbage) dst++;
+        if (*dst != garbage)
+            dst++;
     }
     *dst = '\0';
 }
 
 //Mètode principal
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int PID;
     Packet paquet;
 
     //Comprovem que el número d'arguments sigui correcte
-    if (argc != 2) {
+    if (argc != 2)
+    {
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
         return -1;
     }
@@ -59,20 +64,21 @@ int main(int argc, char **argv) {
 
     //Llegim la informació de el fitxer de configuració
     readConfigFile(&config, argv[1]);
-    
+
     //Ens connectem al servidor Jack
     write(1, MSG_CONNECTING_JACK, strlen(MSG_CONNECTING_JACK));
     fdServer = connectWithServer(config.ipJack, config.portJack);
     //Enviem primer paquet per verificar la connexió
-    strcpy(paquet.origen, "DANNY"); 
-	paquet.origen[5] = '\0';
+    strcpy(paquet.origen, "DANNY");
+    paquet.origen[5] = '\0';
     paquet.tipus = 'C';
-	strcpy(paquet.dades, config.stationName);
-	write(fdServer, &paquet, sizeof(Packet));
-    
+    strcpy(paquet.dades, config.stationName);
+    write(fdServer, &paquet, sizeof(Packet));
+
     //Escoltem resposta per saber si la connexió ha sigut correcte
     read(fdServer, &paquet, sizeof(Packet));
-    if(paquet.tipus == 'O' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+    if (paquet.tipus == 'O' && strcmp(paquet.origen, "JACK") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0)
+    {
         //Enviem PID d'aquest Danny
         PID = getpid();
         write(fdServer, &PID, sizeof(int));
@@ -80,7 +86,7 @@ int main(int argc, char **argv) {
         write(1, MSG_CONNECTING_WENDY, strlen(MSG_CONNECTING_WENDY));
         fdServerWendy = connectWithServer(config.ipWendy, config.portWendy);
         //Enviem primer paquet per verificar la connexió
-        strcpy(paquet.origen, "DANNY"); 
+        strcpy(paquet.origen, "DANNY");
         paquet.origen[5] = '\0';
         paquet.tipus = 'C';
         strcpy(paquet.dades, config.stationName);
@@ -88,7 +94,8 @@ int main(int argc, char **argv) {
 
         //Escoltem resposta per saber si la connexió ha sigut correcte
         read(fdServerWendy, &paquet, sizeof(Packet));
-        if(paquet.tipus == 'O' && strcmp(paquet.origen, "WENDY") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0) {
+        if (paquet.tipus == 'O' && strcmp(paquet.origen, "WENDY") == 0 && strcmp(paquet.dades, "CONNEXIO OK") == 0)
+        {
             //Enviem PID d'aquest Danny
             PID = getpid();
             write(fdServerWendy, &PID, sizeof(int));
@@ -96,13 +103,18 @@ int main(int argc, char **argv) {
             //Iniciem el programa
             alarm(1);
             //Bucle infinit fins que fem CTRL+C per anar llegint les dades i enviant-les
-            while (1) {
+            while (1)
+            {
                 pause();
             }
-        } else {
+        }
+        else
+        {
             write(1, "Error al connectar amb el servidor Wendy\n", 42);
         }
-    } else {
+    }
+    else
+    {
         write(1, "Error al connectar amb el servidor Jack\n", 41);
     }
 

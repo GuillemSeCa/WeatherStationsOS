@@ -1,18 +1,3 @@
-//#define _GNU_SOURCE
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <strings.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <time.h>
 #include "ConfigJack.h"
 #include "SignalsJack.h"
 #include "SocketsJack.h"
@@ -31,7 +16,8 @@ Station *stationShared;
 Hallorann estacio;
 
 //Mètode que executarà el Fork
-void lloydProcess() {
+void lloydProcess()
+{
     //Inicialitzem el valor de l'estació
     estacio.countLectures = 0;
     estacio.totalHumidity = 0;
@@ -45,22 +31,28 @@ void lloydProcess() {
     signal(SIGINT, ctrlCSignalLloyd);
 
     //Anem esperant a que s'escrigui a la memòria compartida
-    while(1) {
+    while (1)
+    {
+        //Esperem s'activi semàfor
         SEM_wait(&jackSem);
+        //Llegim memòria
         estacio.countLectures++;
         estacio.totalTemperature += stationShared->temperature;
         estacio.totalHumidity += stationShared->humidity;
         estacio.totalAtmospheric += stationShared->atmosphericPressure;
         estacio.totalPrecipitation += stationShared->precipitation;
+        //Avisem Lloyd hem acabat de llegir
         SEM_signal(&lloydSem);
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     pid_t pid;
 
     //Comprovem que el número d'arguments sigui correcte
-    if (argc != 2) {
+    if (argc != 2)
+    {
         write(1, MSG_ERROR_ARGUMENTS, strlen(MSG_ERROR_ARGUMENTS));
         return -1;
     }
@@ -77,24 +69,29 @@ int main(int argc, char **argv) {
     SEM_init(&lloydSem, 1);
 
     //Creem regió memòria compartida
-    memCompId = shmget(IPC_PRIVATE, sizeof(Station), IPC_CREAT|IPC_EXCL|0600);
-    if (memCompId > 0) {
+    memCompId = shmget(IPC_PRIVATE, sizeof(Station), IPC_CREAT | IPC_EXCL | 0600);
+    if (memCompId > 0)
+    {
         //Lliguem les adreces i obtenim el punter de la memòria
         stationShared = shmat(memCompId, 0, 0);
-    } else {
+    }
+    else
+    {
         write(1, "Error al crear la regió de memòria compartida!\n", 50);
     }
 
     //Fork per Lloyd
     pid = fork();
-    if (pid == 0) {
+    if (pid == 0)
+    {
         //Child
         lloydProcess();
 
         //Deslliguem les adreces
         shmdt(stationShared);
     }
-    else if (pid > 0) {
+    else if (pid > 0)
+    {
         //Parent
 
         //Missatge benvinguda
@@ -105,7 +102,7 @@ int main(int argc, char **argv) {
 
         //Preparem la configuració d'aquest servidor Jack
         launchServer(configJack);
-        
+
         //Iniciem el servidor i esperem connexió dels Clients Danny
         serverRun();
 

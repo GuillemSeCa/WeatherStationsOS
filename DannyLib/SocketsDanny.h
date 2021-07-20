@@ -11,16 +11,14 @@
 #include <signal.h>
 #include <time.h>
 #include <dirent.h>
-#include <sys/types.h>
 #include <errno.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "ReadFilesDanny.h"
 
 //Estructura per guardar els paquets
-typedef struct {
+typedef struct
+{
     char origen[14];
     char tipus;
     char dades[100];

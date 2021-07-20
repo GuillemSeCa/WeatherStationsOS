@@ -4,17 +4,8 @@
 #pragma once
 
 #define _POSIX_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
 #include <signal.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/shm.h>
 #include "SocketsJack.h"
 
@@ -23,7 +14,8 @@
 #define PATH_HALLORANN "Hallorann.txt"
 
 //Estructura per guardar la mitjana aritmètica
-typedef struct {
+typedef struct
+{
     int countLectures;
     int totalHumidity;
     float totalTemperature;

@@ -3,12 +3,14 @@
 int countClients, *clientPIDs;
 
 //Mètode per substituir el funcionament del signal CTRL+C
-void ctrlCSignal() {
+void ctrlCSignal()
+{
     int i;
 
     //Desconnectem tots els Danny's
-    for(i = 0; i < countClients; i++) {
-        kill (clientPIDs[i], SIGINT);
+    for (i = 0; i < countClients; i++)
+    {
+        kill(clientPIDs[i], SIGINT);
     }
 
     //Desconnectem Wendy i alliberem tota la memòria dinàmica restant

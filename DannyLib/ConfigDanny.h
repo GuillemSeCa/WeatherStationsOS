@@ -3,22 +3,12 @@
 */
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <signal.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include "ReadFilesDanny.h"
 #include "SocketsDanny.h"
 
 //Estructura per guardar la configuració
-typedef struct {
+typedef struct
+{
     char *stationName;
     char *pathFolder;
     int revisionFilesTime;

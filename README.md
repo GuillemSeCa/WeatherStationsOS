@@ -23,9 +23,6 @@ $ Danny ConfigDanny.dat
 ```sh
 $ Danny ConfigDanny2.dat
 ```
-```sh
-$ Danny ConfigDanny3.dat
-```
 
 # Extra memory
 En cas de falta de memòria, es pot netejar executant el fitxer:

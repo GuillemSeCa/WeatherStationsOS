@@ -3,16 +3,12 @@
 */
 #pragma once
 
-#include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include <stdlib.h>
+#include <pthread.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
-#include <unistd.h>
-#include <pthread.h>
 #include "ConfigWendy.h"
 #include "SignalsWendy.h"
 
@@ -27,14 +23,16 @@
 #define MSG_ERR_ACCEPT "Error al crear acceptar la connexió d'un nou client al Servidor Wendy!\n"
 
 //Estructura per guardar els paquets
-typedef struct {
+typedef struct
+{
     char origen[14];
     char tipus;
     char dades[100];
 } Packet;
 
 //Estructura per guardar les dades d'una imatge
-typedef struct {
+typedef struct
+{
     char *fileName;
     int size;
     char *md5sum;

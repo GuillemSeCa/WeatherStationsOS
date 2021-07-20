@@ -6,7 +6,8 @@ Station *stationShared;
 Hallorann estacio;
 
 //Mètode per substituir el funcionament del signal CTRL+C
-void ctrlCSignal() {
+void ctrlCSignal()
+{
     int i;
 
     //Eliminem memòria compartida i semàfors
@@ -14,10 +15,11 @@ void ctrlCSignal() {
     shmctl(memCompId, IPC_RMID, NULL);
     SEM_destructor(&jackSem);
     SEM_destructor(&lloydSem);
-    
+
     //Desconnectem tots els Danny's
-    for(i = 0; i < countClients; i++) {
-        kill (clientPIDs[i], SIGINT);
+    for (i = 0; i < countClients; i++)
+    {
+        kill(clientPIDs[i], SIGINT);
     }
 
     //Desconnectem Jack i alliberem tota la memòria dinàmica restant
@@ -27,12 +29,14 @@ void ctrlCSignal() {
 }
 
 //Mètode per substituir el funcionament del signal CTRL+C per Lloyd
-void ctrlCSignalLloyd() {
+void ctrlCSignalLloyd()
+{
     int i;
-    
+
     //Desconnectem tots els Danny's
-    for(i = 0; i < countClients; i++) {
-        kill (clientPIDs[i], SIGINT);
+    for (i = 0; i < countClients; i++)
+    {
+        kill(clientPIDs[i], SIGINT);
     }
 
     //Desconnectem Lloyd i alliberem tota la memòria dinàmica restant
@@ -41,7 +45,8 @@ void ctrlCSignalLloyd() {
 }
 
 //Mètode per escriure al fitxer Hallorann
-void writeFile() {
+void writeFile()
+{
     int fdHallorann, mitjanaH;
     float mitjanaT, mitjanaA, mitjanaP;
     char buffer[255];
@@ -63,7 +68,8 @@ void writeFile() {
     write(fdHallorann, buffer, strlen(buffer));
 
     close(fdHallorann);
+    
     //Tornem a reprogramar la signal
-    signal(SIGALRM, writeFile); 
+    signal(SIGALRM, writeFile);
     alarm(120);
 }

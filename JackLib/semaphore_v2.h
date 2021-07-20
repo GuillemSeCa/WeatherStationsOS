@@ -75,11 +75,7 @@ typedef struct
  * @return int The result of the operation executed
  */
 
-int SEM_constructor_with_name(semaphore * sem, key_t key) ;
-
-
-
-
+int SEM_constructor_with_name(semaphore *sem, key_t key);
 
 //////////////////////////////////////////////////////////////////////////////
 //                       V1 SEMAPHORE                                      //
@@ -90,7 +86,7 @@ int SEM_constructor_with_name(semaphore * sem, key_t key) ;
  * @param sem The var where semaphore will be created
  * @return int The result of the operation executed
  */
-int SEM_constructor (semaphore * sem);
+int SEM_constructor(semaphore *sem);
 
 /**
  * Method which initializes a semaphore
@@ -99,13 +95,14 @@ int SEM_constructor (semaphore * sem);
  *          initialized
  * @return int The result of the operation executed
  */
-int SEM_init (const semaphore * sem, const int v);
+int SEM_init(const semaphore *sem, const int v);
+
 /**
  * Method to destroy a semaphore
  * @param sem The semaphore to destroy
  * @return int The result of the operation executed
  */
-int SEM_destructor (const semaphore * sem);
+int SEM_destructor(const semaphore *sem);
 
 /**
  * Method to apply a wait operation, in order to warn that a
@@ -115,7 +112,7 @@ int SEM_destructor (const semaphore * sem);
  * @param sem The semaphore where wait operation will be applied
  * @return int The result of the operation executed
  */
-int SEM_wait (const semaphore * sem);
+int SEM_wait(const semaphore *sem);
 
 /**
  * Method to apply a signal operation, in order to warn that a
@@ -127,6 +124,6 @@ int SEM_wait (const semaphore * sem);
  *            applied
  * @return int The result of the operation executed
  */
-int SEM_signal (const semaphore * sem);
+int SEM_signal(const semaphore *sem);
 
 #endif /* _MOD_SEMAPHORE_H_ */

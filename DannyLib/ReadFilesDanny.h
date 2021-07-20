@@ -3,22 +3,12 @@
 */
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <signal.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include "ConfigDanny.h"
 #include "SocketsDanny.h"
 
 //Estructura per guardar les dades d'una estació
-typedef struct {
+typedef struct
+{
     char *fileName;
     char *date;
     char *hour;
@@ -29,7 +19,8 @@ typedef struct {
 } Station;
 
 //Estructura per guardar les dades d'una imatge
-typedef struct {
+typedef struct
+{
     char *fileName;
 } Image;
 
